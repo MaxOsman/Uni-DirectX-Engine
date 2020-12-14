@@ -1,0 +1,7 @@
+﻿  Application.cpp
+  DDSTextureLoader.cpp
+  DX11 Framework.cpp
+  Geometry.cpp
+  Light.cpp
+  Generating Code...
+LINK : fatal error LNK1104: cannot open file 'd3dx11d.lib'

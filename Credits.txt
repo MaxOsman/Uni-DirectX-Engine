@@ -1,0 +1,19 @@
+Tutorials I used to help make mouse and camera controls:
+ChiliTomatoNoodle. (2019). C++ 3D DirectX Tutorial [Test GUI (ImGui) / Camera]. [Online Video]. 11 May 2019. Available from: https://www.youtube.com/watch?v=Sv3pjKJr-vY. [Accessed: 14 December 2020].
+ChiliTomatoNoodle. (2019). C++ 3D DirectX Tutorial [First Person Mouse]. [Online Video]. 27 July 2019. Available from: https://www.youtube.com/watch?v=zWeuY3fuA3Q. [Accessed: 14 December 2020].
+
+Nlohmann JSON read at:
+https://github.com/nlohmann/json
+
+DDS Texture Loader at:
+https://github.com/Microsoft/DirectXTK/wiki/DDSTextureLoader
+
+Metal texture:
+Georges Grondin, (2009), Metal Panel Alt [ONLINE]. Available at: https://opengameart.org/content/metal-panel-alt [Accessed 14 December 2020].
+
+Stone texture:
+Georges Grondin, (2009), Metal Panel Alt [ONLINE]. Available at: https://opengameart.org/content/metal-panel-alt [Accessed 14 December 2020].
+
+Fur texture:
+Bart Kelsey, (2012), 2048x2048 Tiling Beast Fur Texture [ONLINE]. Available at: https://opengameart.org/content/2048x2048-tiling-beast-fur-texture [Accessed 14 December 2020].
+
