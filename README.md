@@ -1,2 +1,2 @@
-# Uni-DirectX-Engine
-3D game engine in DirectX 11
+# Uni-DirectX-Framework
+3D game framework in DirectX 11
