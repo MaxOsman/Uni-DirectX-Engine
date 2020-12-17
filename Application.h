@@ -6,6 +6,7 @@
 #include <vector>
 #include "OBJLoader.h"
 #include "json.hpp"
+#include <iostream>
 
 using namespace std;
 using json = nlohmann::json;
@@ -31,6 +32,7 @@ private:
 	ID3D11RasterizerState*	_solid;
 	ConstantBuffer			_cb;
 	ID3D11SamplerState*		_pSamplerLinear;
+	ID3D11BlendState*		_transparency;
 
 	Camera* camera;
 	vector<IndexedMesh> _meshes;
@@ -47,7 +49,7 @@ private:
 
 	CameraMode cameraMode;
 	bool isSolid;
-	float walkSpeed;
+	float _playerSpeed;
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;
@@ -58,8 +60,6 @@ private:
 	void Cleanup();
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	HRESULT InitShadersAndInputLayout();
-	HRESULT InitVertexBuffer();
-	HRESULT InitIndexBuffer();
 	void LoadObjectData();
 	void PlayerTranslate(float dx, float dy, float dz);
 	void PlayerRotate();
@@ -70,14 +70,10 @@ public:
 
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
 	bool HandleKeyboard(MSG msg);
+
 	void ConfineCursor();
 	void FreeCursor();
-
-	CameraMode GetCameraMode() { return cameraMode; }
-
+	
 	void Update();
 	void Draw();
-
-	int x;
-	int y;
 };

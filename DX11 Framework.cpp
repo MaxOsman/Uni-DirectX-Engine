@@ -21,7 +21,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         {
             bool handled = false;
 
-            if (msg.message >= WM_KEYFIRST && msg.message <= WM_KEYFIRST)
+            if (msg.message >= WM_KEYFIRST && msg.message <= WM_KEYLAST)
             {
                 handled = theApp->HandleKeyboard(msg);
             }

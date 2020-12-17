@@ -1,8 +1,7 @@
 #include "Camera.h"
 
-Camera::Camera(UINT windowHeight, UINT windowWidth, XMFLOAT3 eye, XMFLOAT3 at, XMFLOAT3 up, float speed)
+Camera::Camera(UINT windowHeight, UINT windowWidth, XMFLOAT3 eye, XMFLOAT3 at, XMFLOAT3 up)
 {
-    walkSpeed = speed;
     _windowWidth = windowWidth;
     _windowHeight = windowHeight;
     _eye = eye;
@@ -31,7 +30,7 @@ void Camera::Update(CameraMode mode, HWND hWnd)
         GetCursorPos(&point);
         POINT newPoint = {point.x - (0.5 * rc.right + 0.5 * rc.left), point.y - (0.5 * rc.bottom + 0.5 * rc.top)};
 
-        Rotate1st(newPoint.x, newPoint.y);
+        Rotate(newPoint.x, newPoint.y);
 
         //Reset position
         SetCursorPos(0.5 * rc.right + 0.5 * rc.left, 0.5 * rc.bottom + 0.5 * rc.top);
@@ -59,7 +58,7 @@ void Camera::ChangePos(XMFLOAT3 e, XMFLOAT3 a, XMFLOAT3 u)
     XMStoreFloat4x4(&_view, XMMatrixLookAtLH(Eye, At, Up));
 }
 
-void Camera::Rotate1st(float dx, float dy)
+void Camera::Rotate(float dx, float dy)
 {
     yaw = WrapAngle(yaw + (dx * rotationSpeed));
     pitch = Clamp(pitch + (dy * rotationSpeed), 0.995f * XM_PI / 2.0f, 0.995f * -XM_PI / 2.0f);

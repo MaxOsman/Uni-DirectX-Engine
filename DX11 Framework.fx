@@ -27,8 +27,15 @@ cbuffer ConstantBuffer : register( b0 )
     float3 EyePosW;
 }
 
-//--------------------------------------------------------------------------------------
 struct VS_OUTPUT
+{
+    float4 Pos : SV_POSITION;
+    float3 NormalW : NORMAL;
+    float3 PosW : POSITION;
+    float2 Tex : TEXCOORD;
+};
+
+struct PS_INPUT
 {
     float4 Pos : SV_POSITION;
     float3 NormalW : NORMAL;
@@ -65,7 +72,7 @@ VS_OUTPUT VS( float4 Pos : POSITION, float3 NormalL : NORMAL, float2 Tex : TEXCO
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-float4 PS( VS_OUTPUT input ) : SV_Target
+float4 PS( PS_INPUT input ) : SV_Target
 {
     float4 textureColour = txDiffuse.Sample(samLinear, input.Tex);
 
@@ -85,6 +92,7 @@ float4 PS( VS_OUTPUT input ) : SV_Target
     float3 specular = specularAmount * ((SpecularMtrl * SpecularLight).rgb);
 
     float4 Color;
+    clip(textureColour.a - 0.25f);
     Color.rgb = (diffuse + ambient + specular) * textureColour.rgb;
     Color.a = DiffuseMtrl.a;
 

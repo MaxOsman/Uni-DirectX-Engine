@@ -19,8 +19,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
-
-    return 0;
 }
 
 Application::Application()
@@ -38,6 +36,7 @@ Application::Application()
 	_pVertexLayout = nullptr;
 	_pConstantBuffer = nullptr;
     _pSamplerLinear = nullptr;
+    _transparency = nullptr;
     RAWINPUTDEVICE rid;
     rid.usUsagePage = 0x01;
     rid.usUsage = 0x02;
@@ -70,7 +69,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         return E_FAIL;
     }
 
-    lightDirection = XMFLOAT3(1.0f, 1.0f, 0.0f);
+    lightDirection = XMFLOAT3(1.0f, 1.0f, 0.5f);
     diffuseLight = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
     ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
     specularLight = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -79,13 +78,12 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     cameraMode = CAMERA_ANGLED;
     isSolid = true;
+    _playerSpeed = 10.0f;
 
-    walkSpeed = 10.0f;
     camera = new Camera(_WindowWidth, _WindowHeight, 
         { 0.0f, 20.0f, 15.0f },
         { 0.0f, 0.0f, 0.0f },
-        { 0.0f, 1.0f, 0.0f },
-        walkSpeed);
+        { 0.0f, 1.0f, 0.0f });
     LoadObjectData();
 
 	return S_OK;
@@ -140,6 +138,11 @@ void Application::LoadObjectData()
         int meshIndex = 0;
         for (int i = 0; i < _meshes.size(); ++i)
         {
+            if (meshName == "BasicCube")
+            {
+                meshIndex = i;
+                break;
+            }
             if (meshName == _meshes[i].name)
             {
                 meshIndex = i;
@@ -179,6 +182,9 @@ void Application::LoadObjectData()
         json scale = objects.at(i)["scale"];
         XMFLOAT3 scaleMatrix = { scale.at(0), scale.at(1), scale.at(2) };
 
+        //Transparency
+        bool trans = objects.at(i)["trans"];
+
         //Finalise
         _objects.push_back({    _meshes[meshIndex].meshData,
                                 posMatrix,
@@ -187,7 +193,8 @@ void Application::LoadObjectData()
                                 _textures[texIndex].texture, 
                                 _materials[matIndex].diffuseMaterial, 
                                 _materials[matIndex].ambientMaterial, 
-                                _materials[matIndex].specularMaterial });
+                                _materials[matIndex].specularMaterial,
+                                trans});
 
         //KEEP ORIGINAL AS AN OPTION!!!
     }
@@ -462,84 +469,27 @@ HRESULT Application::InitDevice()
 
     _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
 
-    if (FAILED(hr))
-        return hr;
+    //Blend equation
+    D3D11_BLEND_DESC blendDesc;
+    ZeroMemory(&blendDesc, sizeof(blendDesc));
 
-    return S_OK;
-}
+    D3D11_RENDER_TARGET_BLEND_DESC rtbd;
+    ZeroMemory(&rtbd, sizeof(rtbd));
 
-HRESULT Application::InitVertexBuffer()
-{
-    HRESULT hr = S_OK;
-    ID3D11Buffer* _pVertexBuffer;
+    rtbd.BlendEnable = true;
+    rtbd.SrcBlend = D3D11_BLEND_SRC_COLOR;
+    rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+    rtbd.BlendOp = D3D11_BLEND_OP_ADD;
+    rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+    rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+    rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    rtbd.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
 
-    // Create vertex buffer
-    SimpleVertex vertices[] =
-    {
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-    };
+    blendDesc.AlphaToCoverageEnable = false;
+    blendDesc.RenderTarget[0] = rtbd;
 
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
+    _pd3dDevice->CreateBlendState(&blendDesc, &_transparency);
 
-    D3D11_SUBRESOURCE_DATA InitData;
-    ZeroMemory(&InitData, sizeof(InitData));
-
-    bd.ByteWidth = sizeof(SimpleVertex) * sizeof(vertices);
-    InitData.pSysMem = vertices;
-    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pVertexBuffer);
-
-    if (FAILED(hr))
-        return hr;
-
-    return S_OK;
-}
-
-HRESULT Application::InitIndexBuffer()
-{
-    HRESULT hr = S_OK;
-    ID3D11Buffer* _pIndexBuffer;
-
-    // Create index buffer
-    WORD indices[] =
-    {
-        0,1,2,
-        2,1,3,
-        0,6,4,
-        0,2,6,
-        3,1,5,
-        5,7,3,
-        5,4,6,
-        6,7,5,
-        0,5,1,
-        0,4,5,
-        2,3,7,
-        7,6,2,
-    };
-
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    D3D11_SUBRESOURCE_DATA InitData;
-    ZeroMemory(&InitData, sizeof(InitData));
-
-    //Same as above
-    bd.ByteWidth = sizeof(WORD) * sizeof(indices);
-    InitData.pSysMem = indices;
-    hr = _pd3dDevice->CreateBuffer(&bd, &InitData, &_pIndexBuffer);
 
     if (FAILED(hr))
         return hr;
@@ -554,62 +504,84 @@ bool Application::HandleKeyboard(MSG msg)
         switch (msg.wParam)
         {
         case 0x43:      //C key
-            if (cameraMode == CAMERA_ANGLED)
+            switch (cameraMode)
             {
+            case CAMERA_ANGLED:
                 camera->ChangePos({ 0.0f, 20.0f, 0.0f },
                     { 0.0f, 0.0f, 0.0f },
                     { 0.0f, 0.0f, -1.0f });
                 cameraMode = CAMERA_TOPDOWN;
-            }
-            else if (cameraMode == CAMERA_TOPDOWN)
-            {
+                return true;
+
+            case CAMERA_TOPDOWN:
                 cameraMode = CAMERA_FIRST;
-                camera->ChangePos(_objects[0].pos,
+                camera->ChangePos(_objects[PLAYEROBJECT].pos,
                     { 0.0f, 1.0f, 0.0f },
                     { 0.0f, 1.0f, 0.0f });
                 ConfineCursor();
-            }
-            else if (cameraMode == CAMERA_FIRST)
-            {
+                return true;
+
+            case CAMERA_FIRST:
                 cameraMode = CAMERA_THIRD;
-            }
-            else if (cameraMode == CAMERA_THIRD)
-            {
+                return true;
+
+            case CAMERA_THIRD:
                 camera->ChangePos({ 0.0f, 20.0f, 15.0f },
                     { 0.0f, 0.0f, 0.0f },
                     { 0.0f, 1.0f, 0.0f });
                 cameraMode = CAMERA_ANGLED;
                 FreeCursor();
+                return true;
             }
-            return true;
-            break;
 
         case 0x4D:      //M key
-            if (isSolid)
-                isSolid = false;
-            else
-                isSolid = true;
+            isSolid = !isSolid;
             return true;
-            break;
 
-            //DO BETTER CONTROL READING!!!
-
-        case 0x57:      //W key
-            PlayerTranslate(0.0f, 0.0f, 0.1f);
-            break;
-
-        case 0x41:      //A key
-            PlayerTranslate(-0.1f, 0.0f, 0.0f);
-            break;
-
-        case 0x53:      //S key
-            PlayerTranslate(0.0f, 0.0f, -0.1f);
-            break;
-
-        case 0x44:      //D key
-            PlayerTranslate(0.1f, 0.0f, 0.0f);
-            break;
+        case VK_SHIFT:      //M key
+            if (_playerSpeed == 10.0f)
+                _playerSpeed = 20.0f;
+            else
+                _playerSpeed = 10.0f;
+            return true;
         }
+    }
+
+    switch (msg.wParam)
+    {
+    
+
+    case 0x57:      //W key
+        PlayerTranslate(0.0f, 0.0f, 0.1f);
+        return true;
+
+    case 0x41:      //A key
+        PlayerTranslate(-0.1f, 0.0f, 0.0f);
+        return true;
+
+    case 0x53:      //S key
+        PlayerTranslate(0.0f, 0.0f, -0.1f);
+        return true;
+
+    case 0x44:      //D key
+        PlayerTranslate(0.1f, 0.0f, 0.0f);
+        return true;
+
+    case 0x51:      //Q key
+        PlayerTranslate(0.0f, 0.1f, 0.0f);
+        return true;
+
+    case 0x45:      //E key
+        PlayerTranslate(0.0f, -0.1f, 0.0f);
+        return true;
+
+    case VK_ADD:
+        camera->AddR(-0.5f);
+        return true;
+
+    case VK_SUBTRACT:
+        camera->AddR(0.5f);
+        return true;
     }
 
     return false;
@@ -633,14 +605,14 @@ void Application::FreeCursor()
 void Application::PlayerTranslate(float dx, float dy, float dz)
 {
     XMFLOAT3 tempMatrix = { dx, dy, dz };
-    XMStoreFloat3(&tempMatrix, XMVector3Transform(XMLoadFloat3(&tempMatrix), XMMatrixRotationRollPitchYaw(camera->GetPitch(), camera->GetYaw(), 0.0f) * XMMatrixScaling(walkSpeed, walkSpeed, walkSpeed)));
-    _objects[0].pos = { _objects[0].pos.x + tempMatrix.x, _objects[0].pos.y + tempMatrix.y, _objects[0].pos.z + tempMatrix.z };
+    XMStoreFloat3(&tempMatrix, XMVector3Transform(XMLoadFloat3(&tempMatrix), XMMatrixRotationRollPitchYaw(camera->GetPitch(), camera->GetYaw(), 0.0f) * XMMatrixScaling(_playerSpeed, _playerSpeed, _playerSpeed)));
+    _objects[PLAYEROBJECT].pos = { _objects[PLAYEROBJECT].pos.x + tempMatrix.x, _objects[PLAYEROBJECT].pos.y + tempMatrix.y, _objects[PLAYEROBJECT].pos.z + tempMatrix.z };
 }
 
 void Application::PlayerRotate()
 {
-    _objects[0].rot.x = camera->GetPitch();
-    _objects[0].rot.y = camera->GetYaw();
+    _objects[PLAYEROBJECT].rot.x = camera->GetPitch();
+    _objects[PLAYEROBJECT].rot.y = camera->GetYaw();
 }
 
 void Application::Cleanup()
@@ -659,16 +631,17 @@ void Application::Cleanup()
     if (_wireFrame) _wireFrame->Release();
     if (_solid) _solid->Release();
     if (_pSamplerLinear) _pSamplerLinear->Release();
+    if (_transparency) _transparency->Release();
 }
 
 void Application::Update()
 {
     // Update our time
-    static float t = 0.0f;
+    static float _time = 0.0f;
 
     if (_driverType == D3D_DRIVER_TYPE_REFERENCE)
     {
-        t += (float) XM_PI * 0.0125f;
+        _time += (float) XM_PI * 0.0125f;
     }
     else
     {
@@ -678,14 +651,14 @@ void Application::Update()
         if (dwTimeStart == 0)
             dwTimeStart = dwTimeCur;
 
-        t = (dwTimeCur - dwTimeStart) / 1000.0f;
+        _time = (dwTimeCur - dwTimeStart) / 1000.0f;
     }
 
     camera->Update(cameraMode, _hWnd);
-    camera->SetMonkey(_objects[0].pos);
+    camera->SetMonkey(_objects[PLAYEROBJECT].pos);
     PlayerRotate();
 
-    _cb.gTime = t;
+    _cb.gTime = _time;
     eyePosWorld = camera->GetEye();
 }
 
@@ -717,6 +690,15 @@ void Application::Draw()
     _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
 
+    // "fine-tune" the blending equation
+    float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
+
+    //Wireframe mode
+    if (isSolid)
+        _pImmediateContext->RSSetState(_solid);
+    else
+        _pImmediateContext->RSSetState(_wireFrame);
+
     //Don't show the monkey in 1st person camera
     int start;
     if (cameraMode == CAMERA_FIRST)
@@ -725,14 +707,15 @@ void Application::Draw()
         start = 0;
     for (size_t i = start; i < _objects.size(); ++i)
     {
+        // Set the blend state for transparent objects
+        if(_objects[i].trans)
+            _pImmediateContext->OMSetBlendState(_transparency, blendFactor, 0xffffffff);
+        else
+            _pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
+
         _cb.DiffuseMtrl = _objects[i].diffuseMaterial;
         _cb.AmbientMtrl = _objects[i].ambientMaterial;
         _cb.SpecularMtrl = _objects[i].specularMaterial;
-
-        if(isSolid)
-            _pImmediateContext->RSSetState(_solid);
-        else
-            _pImmediateContext->RSSetState(_wireFrame);
 
         _pImmediateContext->PSSetShaderResources(0, 1, &_objects[i].texture);
 

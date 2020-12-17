@@ -10,12 +10,7 @@
 
 using namespace DirectX;
 
-/*struct SimpleVertex
-{
-	XMFLOAT3 Pos;
-	XMFLOAT3 Normal;
-	XMFLOAT2 TexC;
-};*/
+#define PLAYEROBJECT 0
 
 struct ConstantBuffer
 {
@@ -40,11 +35,11 @@ struct WorldObject
 	XMFLOAT3 pos;
 	XMFLOAT3 rot;
 	XMFLOAT3 scale;
-	//XMFLOAT4X4 worldMatrix;
 	ID3D11ShaderResourceView* texture;
 	XMFLOAT4 diffuseMaterial;
 	XMFLOAT4 ambientMaterial;
 	XMFLOAT4 specularMaterial;
+	bool trans;
 	//float t;
 };
 
