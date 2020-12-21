@@ -29,20 +29,6 @@ struct ConstantBuffer
 	XMFLOAT3 EyePosW;
 };
 
-struct WorldObject
-{
-	MeshData meshData;
-	XMFLOAT3 pos;
-	XMFLOAT3 rot;
-	XMFLOAT3 scale;
-	ID3D11ShaderResourceView* texture;
-	XMFLOAT4 diffuseMaterial;
-	XMFLOAT4 ambientMaterial;
-	XMFLOAT4 specularMaterial;
-	bool trans;
-	//float t;
-};
-
 struct IndexedMesh
 {
 	MeshData meshData;

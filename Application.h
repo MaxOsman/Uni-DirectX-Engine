@@ -7,6 +7,7 @@
 #include "OBJLoader.h"
 #include "json.hpp"
 #include <iostream>
+#include "WorldObject.h"
 
 using namespace std;
 using json = nlohmann::json;
@@ -18,7 +19,7 @@ private:
 	HWND                    _hWnd;
 	D3D_DRIVER_TYPE         _driverType;
 	D3D_FEATURE_LEVEL       _featureLevel;
-	ID3D11Device*           _pd3dDevice;
+	ID3D11Device*			_pd3dDevice;
 	ID3D11DeviceContext*    _pImmediateContext;
 	IDXGISwapChain*         _pSwapChain;
 	ID3D11RenderTargetView* _pRenderTargetView;
@@ -49,7 +50,6 @@ private:
 
 	CameraMode cameraMode;
 	bool isSolid;
-	float _playerSpeed;
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;
@@ -61,8 +61,6 @@ private:
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	HRESULT InitShadersAndInputLayout();
 	void LoadObjectData();
-	void PlayerTranslate(float dx, float dy, float dz);
-	void PlayerRotate();
 
 public:
 	Application();

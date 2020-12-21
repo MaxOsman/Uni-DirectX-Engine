@@ -78,7 +78,6 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     cameraMode = CAMERA_ANGLED;
     isSolid = true;
-    _playerSpeed = 10.0f;
 
     camera = new Camera(_WindowWidth, _WindowHeight, 
         { 0.0f, 20.0f, 15.0f },
@@ -195,8 +194,6 @@ void Application::LoadObjectData()
                                 _materials[matIndex].ambientMaterial, 
                                 _materials[matIndex].specularMaterial,
                                 trans});
-
-        //KEEP ORIGINAL AS AN OPTION!!!
     }
 }
 
@@ -490,7 +487,6 @@ HRESULT Application::InitDevice()
 
     _pd3dDevice->CreateBlendState(&blendDesc, &_transparency);
 
-
     if (FAILED(hr))
         return hr;
 
@@ -515,7 +511,7 @@ bool Application::HandleKeyboard(MSG msg)
 
             case CAMERA_TOPDOWN:
                 cameraMode = CAMERA_FIRST;
-                camera->ChangePos(_objects[PLAYEROBJECT].pos,
+                camera->ChangePos(_objects[PLAYEROBJECT].GetPos(),
                     { 0.0f, 1.0f, 0.0f },
                     { 0.0f, 1.0f, 0.0f });
                 ConfineCursor();
@@ -539,10 +535,7 @@ bool Application::HandleKeyboard(MSG msg)
             return true;
 
         case VK_SHIFT:      //M key
-            if (_playerSpeed == 10.0f)
-                _playerSpeed = 20.0f;
-            else
-                _playerSpeed = 10.0f;
+            _objects[PLAYEROBJECT].SetSpeed();
             return true;
         }
     }
@@ -552,27 +545,27 @@ bool Application::HandleKeyboard(MSG msg)
     
 
     case 0x57:      //W key
-        PlayerTranslate(0.0f, 0.0f, 0.1f);
+        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, 0.0f, 0.1f, camera);
         return true;
 
     case 0x41:      //A key
-        PlayerTranslate(-0.1f, 0.0f, 0.0f);
+        _objects[PLAYEROBJECT].PlayerTranslate(-0.1f, 0.0f, 0.0f, camera);
         return true;
 
     case 0x53:      //S key
-        PlayerTranslate(0.0f, 0.0f, -0.1f);
+        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, 0.0f, -0.1f, camera);
         return true;
 
     case 0x44:      //D key
-        PlayerTranslate(0.1f, 0.0f, 0.0f);
+        _objects[PLAYEROBJECT].PlayerTranslate(0.1f, 0.0f, 0.0f, camera);
         return true;
 
     case 0x51:      //Q key
-        PlayerTranslate(0.0f, 0.1f, 0.0f);
+        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, 0.1f, 0.0f, camera);
         return true;
 
     case 0x45:      //E key
-        PlayerTranslate(0.0f, -0.1f, 0.0f);
+        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, -0.1f, 0.0f, camera);
         return true;
 
     case VK_ADD:
@@ -600,19 +593,6 @@ void Application::FreeCursor()
 {
     while (::ShowCursor(TRUE) < 0);
     ClipCursor(nullptr);
-}
-
-void Application::PlayerTranslate(float dx, float dy, float dz)
-{
-    XMFLOAT3 tempMatrix = { dx, dy, dz };
-    XMStoreFloat3(&tempMatrix, XMVector3Transform(XMLoadFloat3(&tempMatrix), XMMatrixRotationRollPitchYaw(camera->GetPitch(), camera->GetYaw(), 0.0f) * XMMatrixScaling(_playerSpeed, _playerSpeed, _playerSpeed)));
-    _objects[PLAYEROBJECT].pos = { _objects[PLAYEROBJECT].pos.x + tempMatrix.x, _objects[PLAYEROBJECT].pos.y + tempMatrix.y, _objects[PLAYEROBJECT].pos.z + tempMatrix.z };
-}
-
-void Application::PlayerRotate()
-{
-    _objects[PLAYEROBJECT].rot.x = camera->GetPitch();
-    _objects[PLAYEROBJECT].rot.y = camera->GetYaw();
 }
 
 void Application::Cleanup()
@@ -655,17 +635,17 @@ void Application::Update()
     }
 
     camera->Update(cameraMode, _hWnd);
-    camera->SetMonkey(_objects[PLAYEROBJECT].pos);
-    PlayerRotate();
+    camera->SetMonkey(_objects[PLAYEROBJECT].GetPos());
+    _objects[PLAYEROBJECT].SetRot({ camera->GetPitch(), camera->GetYaw(), 0.0f });
+    eyePosWorld = camera->GetEye();
 
     _cb.gTime = _time;
-    eyePosWorld = camera->GetEye();
 }
 
 void Application::Draw()
 {
     // Clear the back buffer
-    float ClearColor[4] = {0.0f, 0.125f, 0.3f, 1.0f}; // red,green,blue,alpha
+    float ClearColor[4] = {0.0f, 0.125f, 0.3f, 1.0f}; // Red,green,blue,alpha
     _pImmediateContext->ClearRenderTargetView(_pRenderTargetView, ClearColor);
     _pImmediateContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -688,10 +668,7 @@ void Application::Draw()
     _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
     _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
-    _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
-
-    // "fine-tune" the blending equation
-    float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
+    _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0); 
 
     //Wireframe mode
     if (isSolid)
@@ -707,31 +684,13 @@ void Application::Draw()
         start = 0;
     for (size_t i = start; i < _objects.size(); ++i)
     {
-        // Set the blend state for transparent objects
-        if(_objects[i].trans)
-            _pImmediateContext->OMSetBlendState(_transparency, blendFactor, 0xffffffff);
-        else
-            _pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
-
-        _cb.DiffuseMtrl = _objects[i].diffuseMaterial;
-        _cb.AmbientMtrl = _objects[i].ambientMaterial;
-        _cb.SpecularMtrl = _objects[i].specularMaterial;
-
-        _pImmediateContext->PSSetShaderResources(0, 1, &_objects[i].texture);
-
-        _pImmediateContext->IASetVertexBuffers(0, 1, &_objects[i].meshData.VertexBuffer, &_objects[i].meshData.VBStride, &_objects[i].meshData.VBOffset);
-        _pImmediateContext->IASetIndexBuffer(_objects[i].meshData.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-        XMMATRIX posMatrix = XMMatrixTranslation(_objects[i].pos.x, _objects[i].pos.y, _objects[i].pos.z);
-        XMMATRIX rotMatrix = XMMatrixRotationX(_objects[i].rot.x) * XMMatrixRotationY(_objects[i].rot.y) * XMMatrixRotationZ(_objects[i].rot.z);
-        XMMATRIX scaleMatrix = XMMatrixScaling(_objects[i].scale.x, _objects[i].scale.y, _objects[i].scale.z);
-        XMMATRIX temp = XMMatrixMultiply(XMMatrixMultiply(rotMatrix, scaleMatrix), posMatrix);
-        XMFLOAT4X4 tempWorld;
-        XMStoreFloat4x4(&tempWorld, temp);
-        _cb.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&tempWorld));
-
-        _pImmediateContext->UpdateSubresource(_pConstantBuffer, 0, nullptr, &_cb, 0, 0);
-        _pImmediateContext->DrawIndexed(_objects[i].meshData.IndexCount, 0, 0);
+        if(!_objects[i].GetTrans())
+            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr);
+    }
+    for (size_t i = start; i < _objects.size(); ++i)
+    {
+        if (_objects[i].GetTrans())
+            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, _transparency);
     }
 
     _pSwapChain->Present(0, 0);
