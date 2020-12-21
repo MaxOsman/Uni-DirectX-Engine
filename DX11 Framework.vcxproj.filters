@@ -18,6 +18,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="WorldObject.h" />
+    <ClInclude Include="Light.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -26,6 +27,7 @@
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="WorldObject.cpp" />
+    <ClCompile Include="Light.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">

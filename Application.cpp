@@ -69,13 +69,6 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         return E_FAIL;
     }
 
-    lightDirection = XMFLOAT3(1.0f, 1.0f, 0.5f);
-    diffuseLight = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-    specularLight = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    specularPower = 2.0f;
-    eyePosWorld = XMFLOAT3(0.0f, 20.0f, 15.0f);
-
     cameraMode = CAMERA_ANGLED;
     isSolid = true;
 
@@ -83,6 +76,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         { 0.0f, 20.0f, 15.0f },
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f });
+    light = new Light();
     LoadObjectData();
 
 	return S_OK;
@@ -534,15 +528,14 @@ bool Application::HandleKeyboard(MSG msg)
             isSolid = !isSolid;
             return true;
 
-        case VK_SHIFT:      //M key
+        case VK_SHIFT:
             _objects[PLAYEROBJECT].SetSpeed();
             return true;
         }
     }
 
     switch (msg.wParam)
-    {
-    
+    {   
 
     case 0x57:      //W key
         _objects[PLAYEROBJECT].PlayerTranslate(0.0f, 0.0f, 0.1f, camera);
@@ -574,6 +567,22 @@ bool Application::HandleKeyboard(MSG msg)
 
     case VK_SUBTRACT:
         camera->AddR(0.5f);
+        return true;
+
+    case VK_UP:
+        light->AddDirection({ 0.0f, 0.0f, 0.05f });
+        return true;
+
+    case VK_DOWN:
+        light->AddDirection({ 0.0f, 0.0f, -0.05f });
+        return true;
+
+    case VK_LEFT:
+        light->AddDirection({ -0.05f, 0.0f, 0.0f });
+        return true;
+
+    case VK_RIGHT:
+        light->AddDirection({ 0.05f, 0.0f, 0.0f });
         return true;
     }
 
@@ -636,8 +645,10 @@ void Application::Update()
 
     camera->Update(cameraMode, _hWnd);
     camera->SetMonkey(_objects[PLAYEROBJECT].GetPos());
+
     _objects[PLAYEROBJECT].SetRot({ camera->GetPitch(), camera->GetYaw(), 0.0f });
-    eyePosWorld = camera->GetEye();
+
+    light->SetEye(camera->GetEye());
 
     _cb.gTime = _time;
 }
@@ -655,14 +666,7 @@ void Application::Draw()
     _pImmediateContext->PSSetSamplers(0, 1, &_pSamplerLinear);
     
     //Light
-    _cb.LightVecW = lightDirection;
-
-    _cb.DiffuseLight = diffuseLight;
-    _cb.AmbientLight = ambientLight;
-    _cb.SpecularLight = specularLight;
-
-    _cb.SpecularPower = specularPower;
-    _cb.EyePosW = eyePosWorld;
+    light->Draw(&_cb);
 
     //Shader
     _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);

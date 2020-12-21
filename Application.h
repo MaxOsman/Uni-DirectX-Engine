@@ -2,6 +2,7 @@
 
 #include "Structs.h"
 #include "Camera.h"
+#include "Light.h"
 #include "DDSTextureLoader.h"
 #include <vector>
 #include "OBJLoader.h"
@@ -36,17 +37,11 @@ private:
 	ID3D11BlendState*		_transparency;
 
 	Camera* camera;
+	Light* light;
 	vector<IndexedMesh> _meshes;
 	vector<IndexedTex> _textures;
 	vector<IndexedMat> _materials;
 	vector<WorldObject> _objects;
-
-	XMFLOAT3 lightDirection;
-	XMFLOAT4 diffuseLight;
-	XMFLOAT4 ambientLight;
-	XMFLOAT4 specularLight;
-	float specularPower;
-	XMFLOAT3 eyePosWorld;
 
 	CameraMode cameraMode;
 	bool isSolid;
