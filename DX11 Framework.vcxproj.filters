@@ -19,6 +19,8 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="WorldObject.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Debug.h" />
+    <ClInclude Include="Vector3D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -28,6 +30,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="WorldObject.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Vector3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">

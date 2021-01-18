@@ -9,6 +9,7 @@
 #include "json.hpp"
 #include <iostream>
 #include "WorldObject.h"
+#include "Debug.h"
 
 using namespace std;
 using json = nlohmann::json;
@@ -38,6 +39,7 @@ private:
 
 	Camera* camera;
 	Light* light;
+	Debug* debug;
 	vector<IndexedMesh> _meshes;
 	vector<IndexedTex> _textures;
 	vector<IndexedMat> _materials;

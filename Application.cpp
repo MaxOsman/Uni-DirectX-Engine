@@ -78,10 +78,11 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f });
     light = new Light();
+    debug = new Debug();
 
     //Load games assets from JSON file
     LoadObjectData();
-
+      
 	return S_OK;
 }
 
