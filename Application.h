@@ -45,6 +45,7 @@ private:
 
 	CameraMode cameraMode;
 	bool isSolid;
+	float orbitAngle;
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;

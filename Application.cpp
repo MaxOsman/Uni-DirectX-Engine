@@ -71,12 +71,15 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     cameraMode = CAMERA_ANGLED;
     isSolid = true;
+    orbitAngle = 0.0f;
 
     camera = new Camera(_WindowWidth, _WindowHeight, 
         { 0.0f, 20.0f, 15.0f },
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f });
     light = new Light();
+
+    //Load games assets from JSON file
     LoadObjectData();
 
 	return S_OK;
@@ -178,6 +181,9 @@ void Application::LoadObjectData()
         //Transparency
         bool trans = objects.at(i)["trans"];
 
+        //Billboard
+        bool bill = objects.at(i)["bill"];
+
         //Finalise
         _objects.push_back({    _meshes[meshIndex].meshData,
                                 posMatrix,
@@ -187,7 +193,8 @@ void Application::LoadObjectData()
                                 _materials[matIndex].diffuseMaterial, 
                                 _materials[matIndex].ambientMaterial, 
                                 _materials[matIndex].specularMaterial,
-                                trans});
+                                trans,
+                                bill});
     }
 }
 
@@ -497,8 +504,8 @@ bool Application::HandleKeyboard(MSG msg)
             switch (cameraMode)
             {
             case CAMERA_ANGLED:
-                camera->ChangePos({ 0.0f, 20.0f, 0.0f },
-                    { 0.0f, 0.0f, 0.0f },
+                camera->ChangePos({ 0.0f+_objects[PLAYEROBJECT].GetPos().x, 20.0f+_objects[PLAYEROBJECT].GetPos().y, 0.0f+_objects[PLAYEROBJECT].GetPos().z },
+                    _objects[PLAYEROBJECT].GetPos(),
                     { 0.0f, 0.0f, -1.0f });
                 cameraMode = CAMERA_TOPDOWN;
                 return true;
@@ -538,51 +545,51 @@ bool Application::HandleKeyboard(MSG msg)
     {   
 
     case 0x57:      //W key
-        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, 0.0f, 0.1f, camera);
+        _objects[PLAYEROBJECT].Translate({ 0.0f, 0.0f, 0.1f }, camera);
         return true;
 
     case 0x41:      //A key
-        _objects[PLAYEROBJECT].PlayerTranslate(-0.1f, 0.0f, 0.0f, camera);
+        _objects[PLAYEROBJECT].Translate({ -0.1f, 0.0f, 0.0f }, camera);
         return true;
 
     case 0x53:      //S key
-        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, 0.0f, -0.1f, camera);
+        _objects[PLAYEROBJECT].Translate({ 0.0f, 0.0f, -0.1f }, camera);
         return true;
 
     case 0x44:      //D key
-        _objects[PLAYEROBJECT].PlayerTranslate(0.1f, 0.0f, 0.0f, camera);
+        _objects[PLAYEROBJECT].Translate({ 0.1f, 0.0f, 0.0f }, camera);
         return true;
 
     case 0x51:      //Q key
-        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, 0.1f, 0.0f, camera);
+        _objects[PLAYEROBJECT].Translate({ 0.0f, 0.1f, 0.0f }, camera);
         return true;
 
     case 0x45:      //E key
-        _objects[PLAYEROBJECT].PlayerTranslate(0.0f, -0.1f, 0.0f, camera);
+        _objects[PLAYEROBJECT].Translate({ 0.0f, -0.1f, 0.0f }, camera);
         return true;
 
     case VK_ADD:
-        camera->AddR(-0.5f);
+        camera->AddR(-0.25f);
         return true;
 
     case VK_SUBTRACT:
-        camera->AddR(0.5f);
+        camera->AddR(0.25f);
         return true;
 
     case VK_UP:
-        light->AddDirection({ 0.0f, 0.0f, 0.05f });
-        return true;
-
-    case VK_DOWN:
         light->AddDirection({ 0.0f, 0.0f, -0.05f });
         return true;
 
+    case VK_DOWN:
+        light->AddDirection({ 0.0f, 0.0f, 0.05f });
+        return true;
+
     case VK_LEFT:
-        light->AddDirection({ -0.05f, 0.0f, 0.0f });
+        light->AddDirection({ 0.05f, 0.0f, 0.0f });
         return true;
 
     case VK_RIGHT:
-        light->AddDirection({ 0.05f, 0.0f, 0.0f });
+        light->AddDirection({ -0.05f, 0.0f, 0.0f });
         return true;
     }
 
@@ -626,11 +633,11 @@ void Application::Cleanup()
 void Application::Update()
 {
     // Update our time
-    static float _time = 0.0f;
+    static float deltaTime = 0.0f;
 
     if (_driverType == D3D_DRIVER_TYPE_REFERENCE)
     {
-        _time += (float) XM_PI * 0.0125f;
+        deltaTime += (float) XM_PI * 0.0125f;
     }
     else
     {
@@ -640,17 +647,27 @@ void Application::Update()
         if (dwTimeStart == 0)
             dwTimeStart = dwTimeCur;
 
-        _time = (dwTimeCur - dwTimeStart) / 1000.0f;
-    }
+        deltaTime = (dwTimeCur - dwTimeStart) / 1000.0f;
 
-    camera->Update(cameraMode, _hWnd);
-    camera->SetMonkey(_objects[PLAYEROBJECT].GetPos());
+        if (deltaTime < FPS60)
+            return;
 
-    _objects[PLAYEROBJECT].SetRot({ camera->GetPitch(), camera->GetYaw(), 0.0f });
+        //Once per frame
+        camera->Update(cameraMode, _hWnd);
+        camera->SetMonkey(_objects[PLAYEROBJECT].GetPos());
+        light->SetEye(camera->GetEye());
 
-    light->SetEye(camera->GetEye());
+        _objects[PLAYEROBJECT].SetRot({ camera->GetPitch(), camera->GetYaw(), 0.0f });
+        _objects[ORBITOBJECT].SetPos({ 15*cos(orbitAngle), 15.0f+ cos(orbitAngle)*2, 15*sin(orbitAngle) });
 
-    _cb.gTime = _time;
+        _cb.gTime = deltaTime;
+        orbitAngle += 0.0002;
+        if (orbitAngle > XM_2PI)
+            orbitAngle = 0.0f;
+
+        //Reset frame
+        deltaTime = deltaTime - FPS60;
+    } 
 }
 
 void Application::Draw()
@@ -680,21 +697,24 @@ void Application::Draw()
     else
         _pImmediateContext->RSSetState(_wireFrame);
 
+    //Billboard angle
+    float yaw = XM_PI;
+    if (cameraMode == CAMERA_FIRST || cameraMode == CAMERA_THIRD)
+        yaw = camera->GetYaw();
+
     //Don't show the monkey in 1st person camera
-    int start;
+    int start = 0;
     if (cameraMode == CAMERA_FIRST)
         start = 1;
-    else
-        start = 0;
     for (size_t i = start; i < _objects.size(); ++i)
     {
         if(!_objects[i].GetTrans())
-            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr);
+            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
     }
     for (size_t i = start; i < _objects.size(); ++i)
     {
         if (_objects[i].GetTrans())
-            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, _transparency);
+            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, _transparency, yaw);
     }
 
     _pSwapChain->Present(0, 0);

@@ -5,7 +5,8 @@
     "Pyramid",
     "Plane",
     "Monkey2",
-    "TreePlane"
+    "TreePlane",
+    "Island"
   ],
 
   "texPaths": [
@@ -13,22 +14,23 @@
     "Metal",
     "Stone",
     "Fur",
-    "PineTree"
+    "PineTree",
+    "Dirt"
   ],
 
   "materials": [
     {
       "name": "Dull",
-      "diff": [ 0.5, 0.5, 0.5 ],
+      "diff": [ 0.9, 0.9, 0.9 ],
       "amb": [ 0.5, 0.5, 0.5 ],
-      "spec": [ 0.4, 0.4, 0.4 ]
+      "spec": [ 0.2, 0.2, 0.2 ]
     },
 
     {
       "name": "Shiny",
-      "diff": [ 0.8, 0.8, 0.8 ],
-      "amb": [ 0.7, 0.7, 0.7 ],
-      "spec": [ 0.6, 0.6, 0.6 ]
+      "diff": [ 0.9, 0.9, 0.9 ],
+      "amb": [ 0.5, 0.5, 0.5 ],
+      "spec": [ 0.8, 0.8, 0.8 ]
     }
   ],
 
@@ -40,47 +42,30 @@
       "pos": [ 0.0, 2.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false
+      "trans": false,
+      "bill": false
     },
 
     {
-      "mesh": "BasicCube",
-      "tex": "Stone",
-      "mat": "Shiny",
-      "pos": [ 0.0, -1.0, 0.0 ],
+      "mesh": "Island",
+      "tex": "Dirt",
+      "mat": "Dull",
+      "pos": [ 0.0, -12.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 16.0, 1.0, 16.0 ],
-      "trans": false
+      "scale": [ 6.0, 6.0, 6.0 ],
+      "trans": false,
+      "bill": false
     },
 
     {
-      "mesh": "Cube",
-      "tex": "Metal",
+      "mesh": "Sphere",
+      "tex": "Stone",
       "mat": "Shiny",
       "pos": [ 0.0, 15.0, 0.0 ],
       "rot": [ 0.0, 45.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": false
-    },
-
-    {
-      "mesh": "Cube",
-      "tex": "Crate",
-      "mat": "Dull",
-      "pos": [ -14.0, 2.0, -14.0 ],
-      "rot": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true
-    },
-
-    {
-      "mesh": "Cube",
-      "tex": "Metal",
-      "mat": "Shiny",
-      "pos": [ -10.0, 2.0, -14.0 ],
-      "rot": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true
+      "trans": false,
+      "bill": false
     },
 
     {
@@ -90,67 +75,129 @@
       "pos": [ -14.0, 2.0, -10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true
+      "trans": true,
+      "bill": false
     },
 
     {
       "mesh": "Cube",
       "tex": "Metal",
       "mat": "Shiny",
-      "pos": [ -13.0, 6.0, -12.0 ],
+      "pos": [ -10.0, 2.0, -10.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 2.0, 2.0, 2.0 ],
+      "trans": true,
+      "bill": false
+    },
+
+    {
+      "mesh": "Cube",
+      "tex": "Crate",
+      "mat": "Dull",
+      "pos": [ -14.0, 2.0, -6.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 2.0, 2.0, 2.0 ],
+      "trans": true,
+      "bill": false
+    },
+
+    {
+      "mesh": "Cube",
+      "tex": "Metal",
+      "mat": "Shiny",
+      "pos": [ -13.0, 6.0, -8.0 ],
       "rot": [ 0.0, 25.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true
+      "trans": true,
+      "bill": false
     },
 
     {
       "mesh": "TreePlane",
       "tex": "PineTree",
       "mat": "Dull",
-      "pos": [ 13.0, 4.0, -16.0 ],
+      "pos": [ 13.0, 4.0, -7.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false
+      "trans": false,
+      "bill": true
     },
 
     {
       "mesh": "TreePlane",
       "tex": "PineTree",
       "mat": "Dull",
-      "pos": [ 7.0, 4.0, -16.0 ],
+      "pos": [ 7.0, 4.0, 5.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false
+      "trans": false,
+      "bill": true
     },
 
     {
       "mesh": "TreePlane",
       "tex": "PineTree",
       "mat": "Dull",
-      "pos": [ 1.0, 4.0, -16.0 ],
+      "pos": [ 1.0, 4.0, -2.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false
+      "trans": false,
+      "bill": true
     },
 
     {
       "mesh": "TreePlane",
       "tex": "PineTree",
       "mat": "Dull",
-      "pos": [ -5.0, 4.0, -16.0 ],
+      "pos": [ -5.0, 4.0, 11.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false
+      "trans": false,
+      "bill": true
     },
 
     {
       "mesh": "TreePlane",
       "tex": "PineTree",
       "mat": "Dull",
-      "pos": [ -11.0, 4.0, -16.0 ],
+      "pos": [ -11.0, 4.0, 3.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false
+      "trans": false,
+      "bill": true
+    },
+
+    {
+      "mesh": "Cube",
+      "tex": "Metal",
+      "mat": "Shiny",
+      "pos": [ 10.0, 2.0, 12.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 2.0, 2.0, 2.0 ],
+      "trans": false,
+      "bill": false
+    },
+
+    {
+      "mesh": "Pyramid",
+      "tex": "Metal",
+      "mat": "Shiny",
+      "pos": [ 10.0, 5.0, 12.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 2.0, 2.0, 2.0 ],
+      "trans": false,
+      "bill": false
+    },
+
+    {
+      "mesh": "Pyramid",
+      "tex": "Crate",
+      "mat": "Dull",
+      "pos": [ 6.0, 1.0, 12.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 2.0, 2.0, 2.0 ],
+      "trans": false,
+      "bill": false
     }
   ]
 }

@@ -1,32 +1,92 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="Application">
-    <Position X="0.5" Y="0.5" Width="2.5" />
+    <Position X="4.5" Y="0.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>ACWAACICCxKAAxgAIAEBAAECCAICAIMQQABAAMJBQwI=</HashCode>
+      <HashCode>ECWAACICCxKAAxgAIAEBAAECCAICAIMQQABAAMJBQwI=</HashCode>
       <FileName>Application.h</FileName>
     </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="camera" />
+      <Field Name="light" />
+    </ShowAsAssociation>
   </Class>
   <Class Name="Camera">
-    <Position X="5" Y="0.5" Width="1.75" />
+    <Position X="8.25" Y="1.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>MQwDAwCBAwAAQEgIQAAAAAYAEBAAAEQAACBBAAIAQQA=</HashCode>
+      <HashCode>MQwDAwCBIwAAQEgIAgAAAAYAEBIAAEQAACBBAIIAQQA=</HashCode>
       <FileName>Camera.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="WorldObject">
-    <Position X="8.75" Y="0.5" Width="1.75" />
-    <TypeIdentifier>
-      <HashCode>QIBCAAAgACAAAAAAAAAAALhCAAEAIgAABJAQAAAAAgA=</HashCode>
-      <FileName>WorldObject.h</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="Light">
-    <Position X="12" Y="0.5" Width="1.5" />
+    <Position X="1.25" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAQBAABAAAAAAkCAAAAAAgAYAAAAAAAgBAAAAAAAAAA=</HashCode>
+      <HashCode>AAQBAABAAAAAAkCAAAAAAgAYAAAAAAAgBQAAAAAAAAA=</HashCode>
       <FileName>Light.h</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="WorldObject">
+    <Position X="11.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QIBCAAAkACAAAAAAAAAAALhCAAEAIgAABJAEAAAAAgA=</HashCode>
+      <FileName>WorldObject.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="ConstantBuffer">
+    <Position X="13.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QEAAgIAAYQAAAAAAAQgAAAAAAAAAAAAAACAAABQBAAA=</HashCode>
+      <FileName>Structs.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="IndexedMesh">
+    <Position X="17" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEIAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Structs.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="IndexedTex">
+    <Position X="13.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAgAAAAAAAAAAAAA=</HashCode>
+      <FileName>Structs.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="IndexedMat">
+    <Position X="15.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAAAAAAAAAAAAAAAAEEAAAAAIAAAAAAAAA=</HashCode>
+      <FileName>Structs.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="MeshData">
+    <Position X="15.25" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAAAAAAAAAAAAAEAAAAQAAIAAAAAAAAAAAEAA=</HashCode>
+      <FileName>OBJLoader.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SimpleVertex">
+    <Position X="17" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAACIAAAAAAAgAABAAAA=</HashCode>
+      <FileName>OBJLoader.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="CameraMode">
+    <Position X="13.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAAAAAAgAAAAAAAAAAAAAAAIAAAAAEAAAAA=</HashCode>
+      <FileName>Structs.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DirectX::DDS_ALPHA_MODE">
+    <Position X="15.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAACAAAAAQAAAQAAAAAAAAABA=</HashCode>
+      <FileName>DDSTextureLoader.h</FileName>
+    </TypeIdentifier>
+  </Enum>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>

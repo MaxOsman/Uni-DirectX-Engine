@@ -19,12 +19,13 @@ private:
 	XMFLOAT4 specularMaterial;
 
 	bool transparent;
+	bool billboard;
 
 	float blendFactor[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
 	float _playerSpeed;
 
 public:
-	WorldObject(MeshData mesh, XMFLOAT3 p, XMFLOAT3 r, XMFLOAT3 s, ID3D11ShaderResourceView* tex, XMFLOAT4 diffuse, XMFLOAT4 ambient, XMFLOAT4 specular, bool trans);
+	WorldObject(MeshData mesh, XMFLOAT3 p, XMFLOAT3 r, XMFLOAT3 s, ID3D11ShaderResourceView* tex, XMFLOAT4 diffuse, XMFLOAT4 ambient, XMFLOAT4 specular, bool trans, bool bill);
 	~WorldObject();
 
 	XMFLOAT3 GetPos() { return pos; }
@@ -33,8 +34,8 @@ public:
 
 	void SetPos(XMFLOAT3 p) { pos = p; }
 	void SetRot(XMFLOAT3 r) { rot = r; }
-	void PlayerTranslate(float dx, float dy, float dz, Camera* cam);
+	void Translate(XMFLOAT3 d, Camera* cam);
 	void SetSpeed();
 
-	void Render(ConstantBuffer cb, ID3D11DeviceContext* pImmediateContext, ID3D11Buffer* pConstantBuffer, ID3D11BlendState* transparency);
+	void Render(ConstantBuffer cb, ID3D11DeviceContext* pImmediateContext, ID3D11Buffer* pConstantBuffer, ID3D11BlendState* transparency, float yaw);
 };

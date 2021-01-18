@@ -16,11 +16,17 @@ Camera::Camera(UINT windowHeight, UINT windowWidth, XMFLOAT3 eye, XMFLOAT3 at, X
 
     // Initialize the projection matrix
     XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, _windowWidth * XM_PI / (FLOAT)_windowHeight, 0.01f, 100.0f));
+
+    pitch = 0.0f;
+    yaw = 0.0f;
+    rotationSpeed = 0.005f;
+    r = 3.0f;
 }
 
 void Camera::Update(CameraMode mode, HWND hWnd)
 {
-    if (mode == CAMERA_FIRST || mode == CAMERA_THIRD)
+    _mode = mode;
+    if (_mode == CAMERA_FIRST || _mode == CAMERA_THIRD)
     {
         //Get screen coords
         GetClientRect(hWnd, &rc);
@@ -30,14 +36,16 @@ void Camera::Update(CameraMode mode, HWND hWnd)
         GetCursorPos(&point);
         POINT newPoint = {point.x - (0.5 * rc.right + 0.5 * rc.left), point.y - (0.5 * rc.bottom + 0.5 * rc.top)};
 
+        //Do player rotation
         Rotate(newPoint.x, newPoint.y);
 
         //Reset position
         SetCursorPos(0.5 * rc.right + 0.5 * rc.left, 0.5 * rc.bottom + 0.5 * rc.top);
 
-        if(mode == CAMERA_FIRST)
+        _eye = _monkey;
+        if(_mode == CAMERA_FIRST)
             XMStoreFloat4x4(&_view, GetMatrix1st());
-        if (mode == CAMERA_THIRD)
+        else
             XMStoreFloat4x4(&_view, GetMatrix3rd());
     }
 }
@@ -66,8 +74,6 @@ void Camera::Rotate(float dx, float dy)
 
 XMMATRIX Camera::GetMatrix1st()
 {
-    _eye = _monkey;
-
     const XMVECTOR forwardBaseVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
     const XMVECTOR lookVector = XMVector3Transform(forwardBaseVector, XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f));
 
@@ -80,7 +86,6 @@ XMMATRIX Camera::GetMatrix1st()
 
 XMMATRIX Camera::GetMatrix3rd()
 {
-    _eye = _monkey;
     XMFLOAT3 tempMatrix;
     XMStoreFloat3(&tempMatrix, XMVector3Transform(XMVectorSet(0.0f, 0.0f, -r, 0.0f), XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f)));
     _eye = { _eye.x + tempMatrix.x, _eye.y + tempMatrix.y, _eye.z + tempMatrix.z };

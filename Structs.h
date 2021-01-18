@@ -11,6 +11,8 @@
 using namespace DirectX;
 
 #define PLAYEROBJECT 0
+#define ORBITOBJECT 2
+#define FPS60 0.016f
 
 struct ConstantBuffer
 {
