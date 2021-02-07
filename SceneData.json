@@ -39,7 +39,7 @@
       "mesh": "Monkey2",
       "tex": "Fur",
       "mat": "Dull",
-      "pos": [ 0.0, 2.0, 0.0 ],
+      "pos": [ 0.0, 0.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "trans": false,

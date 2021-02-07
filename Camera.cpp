@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(UINT windowHeight, UINT windowWidth, XMFLOAT3 eye, XMFLOAT3 at, XMFLOAT3 up)
+Camera::Camera(UINT windowHeight, UINT windowWidth, Vector3D eye, Vector3D at, Vector3D up)
 {
     _windowWidth = windowWidth;
     _windowHeight = windowHeight;
@@ -23,7 +23,7 @@ Camera::Camera(UINT windowHeight, UINT windowWidth, XMFLOAT3 eye, XMFLOAT3 at, X
     r = 3.0f;
 }
 
-void Camera::Update(CameraMode mode, HWND hWnd)
+void Camera::Update(CameraMode mode, HWND hWnd, Vector3D pos)
 {
     _mode = mode;
     if (_mode == CAMERA_FIRST || _mode == CAMERA_THIRD)
@@ -48,6 +48,10 @@ void Camera::Update(CameraMode mode, HWND hWnd)
         else
             XMStoreFloat4x4(&_view, GetMatrix3rd());
     }
+    else if (_mode == CAMERA_TOPDOWN)
+    {
+        ChangePos({ pos.x, pos.y + 20.0f, pos.z }, pos, _up);
+    }
 }
 
 void Camera::Reshape(UINT windowWidth, UINT windowHeight, FLOAT nearDepth, FLOAT farDepth)
@@ -55,7 +59,7 @@ void Camera::Reshape(UINT windowWidth, UINT windowHeight, FLOAT nearDepth, FLOAT
     XMStoreFloat4x4(&_projection, XMMatrixPerspectiveFovLH(XM_PIDIV2, windowWidth * XM_PI / (FLOAT)windowHeight, nearDepth, farDepth));
 }
 
-void Camera::ChangePos(XMFLOAT3 e, XMFLOAT3 a, XMFLOAT3 u)
+void Camera::ChangePos(Vector3D e, Vector3D a, Vector3D u)
 {
     _eye = e;
     _at = a;
@@ -77,8 +81,8 @@ XMMATRIX Camera::GetMatrix1st()
     const XMVECTOR forwardBaseVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
     const XMVECTOR lookVector = XMVector3Transform(forwardBaseVector, XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f));
 
-    const XMVECTOR camPosition = XMLoadFloat3(&_eye);
-
+    XMFLOAT3 tempMatrix = { _eye.x, _eye.y, _eye.z };
+    const XMVECTOR camPosition = XMLoadFloat3(&tempMatrix);
     const XMVECTOR camTarget = camPosition + lookVector;
 
     return XMMatrixLookAtLH(camPosition, camTarget, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
@@ -88,10 +92,12 @@ XMMATRIX Camera::GetMatrix3rd()
 {
     XMFLOAT3 tempMatrix;
     XMStoreFloat3(&tempMatrix, XMVector3Transform(XMVectorSet(0.0f, 0.0f, -r, 0.0f), XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f)));
+
     _eye = { _eye.x + tempMatrix.x, _eye.y + tempMatrix.y, _eye.z + tempMatrix.z };
+    tempMatrix = { _eye.x, _eye.y, _eye.z };
 
     const XMVECTOR pos = XMVector3Transform(XMVectorSet(0.0f, 0.0f, -r, 0.0f), XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f));
-    return XMMatrixLookAtLH(pos + XMLoadFloat3(&_eye), XMLoadFloat3(&_eye), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+    return XMMatrixLookAtLH(pos + XMLoadFloat3(&tempMatrix), XMLoadFloat3(&tempMatrix), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 }
 
 float Camera::WrapAngle(float ang)

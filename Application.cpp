@@ -72,6 +72,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     cameraMode = CAMERA_ANGLED;
     isSolid = true;
     orbitAngle = 0.0f;
+    playerSpeed = 10.0f;
 
     camera = new Camera(_WindowWidth, _WindowHeight, 
         { 0.0f, 20.0f, 15.0f },
@@ -173,11 +174,11 @@ void Application::LoadObjectData()
 
         //Find matrix info
         json pos = objects.at(i)["pos"];
-        XMFLOAT3 posMatrix = { pos.at(0), pos.at(1), pos.at(2) };
+        Vector3D posMatrix = { pos.at(0), pos.at(1), pos.at(2) };
         json rot = objects.at(i)["rot"];
-        XMFLOAT3 rotMatrix = { rot.at(0) / 180.0f * XM_PI, rot.at(1) / 180.0f * XM_PI, rot.at(2) / 180.0f * XM_PI };
+        Vector3D rotMatrix = { rot.at(0) / 180.0f * XM_PI, rot.at(1) / 180.0f * XM_PI, rot.at(2) / 180.0f * XM_PI };
         json scale = objects.at(i)["scale"];
-        XMFLOAT3 scaleMatrix = { scale.at(0), scale.at(1), scale.at(2) };
+        Vector3D scaleMatrix = { scale.at(0), scale.at(1), scale.at(2) };
 
         //Transparency
         bool trans = objects.at(i)["trans"];
@@ -186,16 +187,22 @@ void Application::LoadObjectData()
         bool bill = objects.at(i)["bill"];
 
         //Finalise
-        _objects.push_back({    _meshes[meshIndex].meshData,
-                                posMatrix,
-                                rotMatrix,
-                                scaleMatrix,
-                                _textures[texIndex].texture, 
-                                _materials[matIndex].diffuseMaterial, 
-                                _materials[matIndex].ambientMaterial, 
-                                _materials[matIndex].specularMaterial,
-                                trans,
-                                bill});
+        Transform* tempTrans = new Transform( posMatrix, rotMatrix, scaleMatrix );
+        Appearance* tempApp = new Appearance(   _meshes[meshIndex].meshData,
+                                                _textures[texIndex].texture,
+                                                _materials[matIndex].diffuseMaterial,
+                                                _materials[matIndex].ambientMaterial,
+                                                _materials[matIndex].specularMaterial,
+                                                trans,
+                                                bill);
+        bool terrain;
+        if (i == PLAYEROBJECT)
+            terrain = false;
+        else
+            terrain = true;
+
+        _objects.push_back({ tempTrans, tempApp, { 0.0f, 0.0f, 0.0f }, 20.0f, terrain });
+
     }
 }
 
@@ -536,65 +543,75 @@ bool Application::HandleKeyboard(MSG msg)
             isSolid = !isSolid;
             return true;
 
-        case VK_SHIFT:
-            _objects[PLAYEROBJECT].SetSpeed();
+        case VK_SPACE:
+            _objects[PLAYEROBJECT].PlayerJump(5000.0f);
             return true;
         }
     }
 
-    switch (msg.wParam)
-    {   
+    return false;
+}
 
-    case 0x57:      //W key
-        _objects[PLAYEROBJECT].Translate({ 0.0f, 0.0f, 0.1f }, camera);
-        return true;
-
-    case 0x41:      //A key
-        _objects[PLAYEROBJECT].Translate({ -0.1f, 0.0f, 0.0f }, camera);
-        return true;
-
-    case 0x53:      //S key
-        _objects[PLAYEROBJECT].Translate({ 0.0f, 0.0f, -0.1f }, camera);
-        return true;
-
-    case 0x44:      //D key
-        _objects[PLAYEROBJECT].Translate({ 0.1f, 0.0f, 0.0f }, camera);
-        return true;
-
-    case 0x51:      //Q key
-        _objects[PLAYEROBJECT].Translate({ 0.0f, 0.1f, 0.0f }, camera);
-        return true;
-
-    case 0x45:      //E key
-        _objects[PLAYEROBJECT].Translate({ 0.0f, -0.1f, 0.0f }, camera);
-        return true;
-
-    case VK_ADD:
-        camera->AddR(-0.25f);
-        return true;
-
-    case VK_SUBTRACT:
-        camera->AddR(0.25f);
-        return true;
-
-    case VK_UP:
-        light->AddDirection({ 0.0f, 0.0f, -0.05f });
-        return true;
-
-    case VK_DOWN:
-        light->AddDirection({ 0.0f, 0.0f, 0.05f });
-        return true;
-
-    case VK_LEFT:
-        light->AddDirection({ 0.05f, 0.0f, 0.0f });
-        return true;
-
-    case VK_RIGHT:
-        light->AddDirection({ -0.05f, 0.0f, 0.0f });
-        return true;
+void Application::HandlePerFrameInput(float deltaTime)
+{
+    _objects[PLAYEROBJECT].GetParticle()->SetThrust({0.0f, 0.0f, 0.0f});
+    if (GetAsyncKeyState('W'))
+    {
+        _objects[PLAYEROBJECT].PlayerMove({ 0.0f, 0.0f, playerSpeed * deltaTime }, camera);
+    }
+    if (GetAsyncKeyState('A'))
+    {
+        _objects[PLAYEROBJECT].PlayerMove({ -playerSpeed * deltaTime, 0.0f, 0.0f }, camera);
+    }
+    if (GetAsyncKeyState('S'))
+    {
+        _objects[PLAYEROBJECT].PlayerMove({ 0.0f, 0.0f, -playerSpeed * deltaTime }, camera);
+    }
+    if (GetAsyncKeyState('D'))
+    {
+        _objects[PLAYEROBJECT].PlayerMove({ playerSpeed * deltaTime, 0.0f, 0.0f }, camera);
+    }
+    /*if (GetAsyncKeyState('Q'))
+    {
+        _objects[PLAYEROBJECT].GetTransform()->Translate({ 0.0f, playerSpeed * deltaTime, 0.0f });
+    }
+    if (GetAsyncKeyState('E'))
+    {
+        _objects[PLAYEROBJECT].GetTransform()->Translate({ 0.0f, -playerSpeed * deltaTime, 0.0f });
+    }*/
+    if (GetAsyncKeyState(VK_ADD))
+    {
+        camera->AddR(-2.0f * deltaTime);
+    }
+    if (GetAsyncKeyState(VK_SUBTRACT))
+    {
+        camera->AddR(2.0f * deltaTime);
+    }
+    if (GetAsyncKeyState(VK_UP))
+    {
+        light->AddDirection({ 0.0f, 0.0f, -2.0f * deltaTime });
+    }
+    if (GetAsyncKeyState(VK_DOWN))
+    {
+        light->AddDirection({ 0.0f, 0.0f, 2.0f * deltaTime });
+    }
+    if (GetAsyncKeyState(VK_LEFT))
+    {
+        light->AddDirection({ 2.0f * deltaTime, 0.0f, 0.0f });
+    }
+    if (GetAsyncKeyState(VK_RIGHT))
+    {
+        light->AddDirection({ -2.0f * deltaTime, 0.0f, 0.0f });
     }
 
-    return false;
+    if (GetAsyncKeyState(VK_SHIFT))
+    {
+        playerSpeed = PLAYERSPEED * 2.0f;
+    }
+    else
+    {
+        playerSpeed = PLAYERSPEED;
+    }
 }
 
 void Application::ConfineCursor()
@@ -642,7 +659,7 @@ void Application::Update()
     }
     else
     {
-        static DWORD dwTimeStart = 0;
+        //static DWORD dwTimeStart = 0;
         DWORD dwTimeCur = GetTickCount();
 
         if (dwTimeStart == 0)
@@ -654,20 +671,31 @@ void Application::Update()
             return;
 
         //Once per frame
-        camera->Update(cameraMode, _hWnd);
+        for (size_t i = 0; i < _objects.size(); ++i)
+        {
+            if(!_objects[i].GetTerrain())
+                _objects[i].Update(deltaTime);
+        }
+        camera->Update(cameraMode, _hWnd, _objects[PLAYEROBJECT].GetPos());
         camera->SetMonkey(_objects[PLAYEROBJECT].GetPos());
-        light->SetEye(camera->GetEye());
+        XMFLOAT3 tempFloat = { camera->GetEye().x, camera->GetEye().y, camera->GetEye().z };
+        light->SetEye(tempFloat);
 
+        //Sphere orbit
         _objects[PLAYEROBJECT].SetRot({ camera->GetPitch(), camera->GetYaw(), 0.0f });
-        _objects[ORBITOBJECT].SetPos({ 15*cos(orbitAngle), 15.0f+ cos(orbitAngle)*2, 15*sin(orbitAngle) });
+        _objects[ORBITOBJECT].SetPos({ 15*cos(orbitAngle), 15.0f+cos(orbitAngle)*2, 15*sin(orbitAngle) });
 
-        _cb.gTime = deltaTime;
-        orbitAngle += 0.0002;
+        //_cb.gTime = deltaTime;
+        orbitAngle += 1.0f * deltaTime;
         if (orbitAngle > XM_2PI)
             orbitAngle = 0.0f;
 
+        //Hold controls
+        HandlePerFrameInput(deltaTime);
+
         //Reset frame
-        deltaTime = deltaTime - FPS60;
+        deltaTime -= FPS60;
+        dwTimeStart = dwTimeCur;
     } 
 }
 
@@ -709,12 +737,12 @@ void Application::Draw()
         start = 1;
     for (size_t i = start; i < _objects.size(); ++i)
     {
-        if(!_objects[i].GetTrans())
+        if(!_objects[i].GetTransparent())
             _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
     }
     for (size_t i = start; i < _objects.size(); ++i)
     {
-        if (_objects[i].GetTrans())
+        if (_objects[i].GetTransparent())
             _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, _transparency, yaw);
     }
 

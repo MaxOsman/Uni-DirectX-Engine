@@ -1,15 +1,18 @@
 #pragma once
 
-#include "Structs.h"
+#include "Resources/Structs.h"
 #include "Camera.h"
 #include "Light.h"
-#include "DDSTextureLoader.h"
+#include "Resources/DDSTextureLoader.h"
 #include <vector>
-#include "OBJLoader.h"
-#include "json.hpp"
+#include "Resources/OBJLoader.h"
+#include "Resources/json.hpp"
 #include <iostream>
 #include "WorldObject.h"
-#include "Debug.h"
+#include "Resources/Debug.h"
+#include <d3dcompiler.h>
+#include <directxmath.h>
+#include <directxcolors.h>
 
 using namespace std;
 using json = nlohmann::json;
@@ -48,9 +51,11 @@ private:
 	CameraMode cameraMode;
 	bool isSolid;
 	float orbitAngle;
+	float playerSpeed;
 
 	UINT _WindowHeight;
 	UINT _WindowWidth;
+	DWORD dwTimeStart = 0;
 
 private:
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
@@ -66,6 +71,8 @@ public:
 
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
 	bool HandleKeyboard(MSG msg);
+	void HandlePerFrameInput(float deltaTime);
+	void SetSpeed();
 
 	void ConfineCursor();
 	void FreeCursor();

@@ -2,17 +2,11 @@
 
 #include <windows.h>
 #include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include <directxmath.h>
-#include <directxcolors.h>
 #include "resource.h"
 #include "OBJLoader.h"
+#include "Vector3D.h"
 
 using namespace DirectX;
-
-#define PLAYEROBJECT 0
-#define ORBITOBJECT 2
-#define FPS60 0.016f
 
 struct ConstantBuffer
 {

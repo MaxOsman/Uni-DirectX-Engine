@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Structs.h"
+#include "Resources/Structs.h"
 
 class Light
 {
