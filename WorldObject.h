@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Resources/Structs.h"
+#include "Structs.h"
 #include "Camera.h"
 #include "Transform.h"
 #include "ParticleModel.h"
 #include "Appearance.h"
+#include "Quaternion.h"
 
 class WorldObject
 {
@@ -13,6 +14,9 @@ private:
 	ParticleModel* particleModel;
 	Appearance* appearance;
 	bool isStaticTerrain;
+
+	XMFLOAT3X3 inertiaTensor;
+	float angularDamping = 0.5;
 
 public:
 	WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain);
@@ -30,6 +34,8 @@ public:
 	void SetPos(Vector3D p) { transform->SetPos(p); }
 	void SetRot(Vector3D r) { transform->SetRot(r); }
 	void SetScale(Vector3D s) { transform->SetScale(s); }
+
+	Vector3D GetTorque(Vector3D force, Vector3D pos) { return pos.cross_product(force); }
 
 	void CameraTranslate(XMFLOAT3 d, Camera* cam);
 	void PlayerMove(XMFLOAT3 a, Camera* cam);

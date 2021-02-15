@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Resources/Structs.h"
+#include "Structs.h"
 
 class Transform
 {
@@ -10,7 +10,7 @@ private:
 	Vector3D scale;
 
 public:
-	Transform() {};
+	Transform();
 	Transform(Vector3D p, Vector3D r, Vector3D s);
 
 	void Translate(Vector3D d);

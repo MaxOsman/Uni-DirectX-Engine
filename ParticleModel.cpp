@@ -10,6 +10,11 @@ ParticleModel::ParticleModel(Transform* t, Vector3D v, float m)
     weightForce = { 0.0f, -G * mass, 0.0f };
 }
 
+ParticleModel::ParticleModel()
+{
+    
+}
+
 ParticleModel::~ParticleModel()
 {
     transform = nullptr;
@@ -108,14 +113,14 @@ void ParticleModel::UpdateGravity()
 
 void ParticleModel::UpdateGround()
 {
-    if (transform->GetPos().y <= 0.0f)
+    if (transform->GetPos().y <= 0.9f)
     {
         if (!isGrounded)
         {
             isGrounded = true;
         }
         velocity.y = 0.0f;
-        transform->SetPos({ transform->GetPos().x, 0.0f, transform->GetPos().z });
+        transform->SetPos({ transform->GetPos().x, 0.9f, transform->GetPos().z });
     }
     else
         isGrounded = false;

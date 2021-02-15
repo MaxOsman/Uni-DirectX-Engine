@@ -384,6 +384,7 @@
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="ParticleManager.cpp" />
+    <ClCompile Include="ParticleModel.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector3D.cpp" />
@@ -391,6 +392,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DX11 Framework.fx" />
+    <None Include="SceneData.json" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Appearance.h" />
@@ -405,7 +407,9 @@
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleManager.h" />
+    <ClInclude Include="ParticleModel.h" />
     <ClInclude Include="ParticleSystem.h" />
+    <ClInclude Include="Quaternion.h" />
     <CLInclude Include="resource.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="Transform.h" />

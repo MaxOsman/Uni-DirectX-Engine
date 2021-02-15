@@ -43,6 +43,7 @@ Application::Application()
     rid.dwFlags = 0;
     rid.hwndTarget = nullptr;
     RegisterRawInputDevices(&rid, 1, sizeof(rid));
+    srand(time(0));
 }
 
 Application::~Application()
@@ -83,6 +84,33 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     //Load games assets from JSON file
     LoadObjectData();
+
+    //Get right mesh
+    int meshIndex = 0;
+    for (int i = 0; i < _meshes.size(); ++i)
+    {
+        if (_meshes[i].name == "Plane")
+        {
+            meshIndex = i;
+            break;
+        }
+    }
+    //Get right texture
+    int texIndex = 0;
+    for (int i = 0; i < _textures.size(); ++i)
+    {
+        if (_textures[i].name == "Particle")
+        {
+            texIndex = i;
+            break;
+        }
+    }
+
+    particleManager = new ParticleManager(10);
+
+    FireParticleSystem* fireSystem = new FireParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
+    fireSystem->Initialise();
+    particleManager->AddSystem(fireSystem);
       
 	return S_OK;
 }
@@ -134,16 +162,16 @@ void Application::LoadObjectData()
         //Find correct mesh
         string meshName = objects.at(i)["mesh"];
         int meshIndex = 0;
-        for (int i = 0; i < _meshes.size(); ++i)
+        for (int j = 0; j < _meshes.size(); ++j)
         {
             if (meshName == "BasicCube")
             {
-                meshIndex = i;
+                meshIndex = j;
                 break;
             }
-            if (meshName == _meshes[i].name)
+            if (meshName == _meshes[j].name)
             {
-                meshIndex = i;
+                meshIndex = j;
                 break;
             }
         }
@@ -151,11 +179,11 @@ void Application::LoadObjectData()
         //Find correct texture
         string texName = objects.at(i)["tex"];
         int texIndex = 0;
-        for (int i = 0; i < _textures.size(); ++i)
+        for (int j = 0; j < _textures.size(); ++j)
         {
-            if (texName == _textures[i].name)
+            if (texName == _textures[j].name)
             {
-                texIndex = i;
+                texIndex = j;
                 break;
             }
         }
@@ -163,11 +191,11 @@ void Application::LoadObjectData()
         //Find correct material
         string matName = objects.at(i)["mat"];
         int matIndex = 0;
-        for (int i = 0; i < _materials.size(); ++i)
+        for (int j = 0; j < _materials.size(); ++j)
         {
-            if (matName == _materials[i].name)
+            if (matName == _materials[j].name)
             {
-                matIndex = i;
+                matIndex = j;
                 break;
             }
         }
@@ -184,7 +212,9 @@ void Application::LoadObjectData()
         bool trans = objects.at(i)["trans"];
 
         //Billboard
-        bool bill = objects.at(i)["bill"];
+        bool bill = false;
+        if (texName[0] == '~')
+            bill = true;
 
         //Finalise
         Transform* tempTrans = new Transform( posMatrix, rotMatrix, scaleMatrix );
@@ -676,6 +706,8 @@ void Application::Update()
             if(!_objects[i].GetTerrain())
                 _objects[i].Update(deltaTime);
         }
+
+        particleManager->Update(deltaTime);
         camera->Update(cameraMode, _hWnd, _objects[PLAYEROBJECT].GetPos());
         camera->SetMonkey(_objects[PLAYEROBJECT].GetPos());
         XMFLOAT3 tempFloat = { camera->GetEye().x, camera->GetEye().y, camera->GetEye().z };
@@ -740,6 +772,7 @@ void Application::Draw()
         if(!_objects[i].GetTransparent())
             _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
     }
+    particleManager->Render(_pImmediateContext, _cb, _pConstantBuffer);
     for (size_t i = start; i < _objects.size(); ++i)
     {
         if (_objects[i].GetTransparent())

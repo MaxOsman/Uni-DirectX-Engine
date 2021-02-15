@@ -1,18 +1,21 @@
 #pragma once
 
-#include "Resources/Structs.h"
+#include "Structs.h"
 #include "Camera.h"
 #include "Light.h"
-#include "Resources/DDSTextureLoader.h"
+#include "DDSTextureLoader.h"
 #include <vector>
-#include "Resources/OBJLoader.h"
-#include "Resources/json.hpp"
+#include "OBJLoader.h"
+#include "json.hpp"
 #include <iostream>
 #include "WorldObject.h"
-#include "Resources/Debug.h"
+#include "Debug.h"
 #include <d3dcompiler.h>
 #include <directxmath.h>
 #include <directxcolors.h>
+
+#include "ParticleManager.h"
+#include "FireParticleSystem.h"
 
 using namespace std;
 using json = nlohmann::json;
@@ -43,6 +46,7 @@ private:
 	Camera* camera;
 	Light* light;
 	Debug* debug;
+	ParticleManager* particleManager;
 	vector<IndexedMesh> _meshes;
 	vector<IndexedTex> _textures;
 	vector<IndexedMat> _materials;

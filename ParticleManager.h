@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ParticleSystem.h"
+#include "FireParticleSystem.h"
+#include <vector>
 
 class ParticleManager
 {
@@ -9,7 +11,9 @@ public:
 	~ParticleManager();
 
 	ParticleSystem** particleSystems;
+
 	int particleSystemCount = 0;
+	int maxSystemCount;
 
 	void Initialise();
 	void AddSystem(ParticleSystem* newSystem);
@@ -21,5 +25,5 @@ public:
 	bool DoesExist(std::string systemName);
 
 	void Update(float deltaTime);
-	void Render(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb);
+	void Render(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb, ID3D11Buffer* pConstantBuffer);
 };

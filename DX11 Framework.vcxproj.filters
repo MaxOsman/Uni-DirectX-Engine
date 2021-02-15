@@ -74,11 +74,18 @@
     <ClInclude Include="Transform.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="ParticleModel.h">
+      <Filter>Source\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>Source\Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="DX11 Framework.fx">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="SceneData.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11 Framework.rc">
@@ -125,6 +132,9 @@
     </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleModel.cpp">
+      <Filter>Source\Particles</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

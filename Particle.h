@@ -5,16 +5,18 @@
 class Particle
 {
 public:
-	Particle(Vector3D initialPosition, Vector3D velocity, Vector3D clr, float mass, float life);
+	Particle(Vector3D clr, float mass, float life, MeshData mesh, ID3D11ShaderResourceView* tex, bool bright);
+	Particle();
 	~Particle();
 
 	Transform transform;
 	ParticleModel particleModel;
 	Vector3D colour;
-
-	bool isActive = false;
-	float lifetime = 0;
+	MeshData meshData;
+	ID3D11ShaderResourceView* texture;
+	bool isActive;
+	float lifetime;
+	bool isFullbright;
 
 	void Update(float deltaTime);
-	void SetActive(bool active) { isActive = active; }
 };

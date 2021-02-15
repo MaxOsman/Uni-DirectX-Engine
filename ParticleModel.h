@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Resources/Structs.h"
-#include "Resources/Constants.h"
+#include "Structs.h"
+#include "Constants.h"
 #include "Transform.h"
 
 class ParticleModel
@@ -19,12 +19,12 @@ private:
 
 	float mass;
 	bool isLaminar;
-	bool isGrounded;
+	bool isGrounded = false;
 	Transform* transform;
 
 public:
 	ParticleModel(Transform* t, Vector3D v, float m);
-	ParticleModel() {};
+	ParticleModel();
 	~ParticleModel();
 
 	void Update(const float deltaTime);
@@ -52,4 +52,8 @@ public:
 	Vector3D GetThrust() { return thrustForce; }
 	void SetFriction(Vector3D f) { frictionForce = f; }
 	Vector3D GetFriction() { return frictionForce; }
+	void SetLaminarFlow(bool lam) { isLaminar = lam; }
+	bool GetLaminarFlow() { return isLaminar; }
+	void SetTransform(Transform t) { transform = &t; }
+	Transform* GetTransform() { return transform; }
 };

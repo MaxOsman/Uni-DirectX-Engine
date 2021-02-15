@@ -5,26 +5,29 @@
 class ParticleSystem
 {
 public:
-	int numParticles;
-	int numActiveParticles;
+	int numActiveParticles = 0;
+
 	int spawnLimit;
+	float spawnTimer = 0.0f;
+	float spawnRate = 1.0f;	//Per sec
 
-	float spawnTimer;
-	float spawnRate = 1;	//Per sec
-
-	Particle** arrayParticles;
+	//Particle** arrayParticles;
+	Particle* arrayParticles[50];
 	Particle* spawnTemplate = nullptr;
 
 	std::string systemName;
+	Vector3D position;
 
 	//Emmitter* spawnEmmiter = nullptr;
 	int spawnAmount = 1;
 
+	ParticleSystem();
 	ParticleSystem(int particleLimit, Vector3D systemLocation, std::string name);
+	~ParticleSystem();
 	void Initialise();
 
 	void Update(float deltaTime);
-	void Draw(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb);
+	void Draw(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb, ID3D11Buffer* pConstantBuffer);
 
 	void SpawnParticles(Vector3D pos);
 	void DeactivateParticle(int pos);
@@ -37,9 +40,10 @@ public:
 	static void Drag(Particle* particle, float K1, float K2);
 	static void Wind(Particle* particle, Vector3D direction, float windForce);
 	static void Thrust(Particle* particle, Vector3D direction, float thrustForce);
-	static void Repulsion(Particle* particle, Vector3D point, float minDistance, float maxDIstance, float force);
+	static void Repulsion(Particle* particle, Vector3D point, float minDistance, float maxDistance, float force);
 
-	void SetParticleTemplate(Particle* newTemplate);
+	void SetParticleTemplate(Particle* newTemplate) { spawnTemplate = newTemplate; }
+	void SetMesh(MeshData mesh) { spawnTemplate->meshData = mesh; }
 	void SetSpawnRate(float rate) { spawnRate = rate; }
 
 	void Shutdown();

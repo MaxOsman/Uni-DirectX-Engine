@@ -4,7 +4,7 @@
     "Sphere",
     "Pyramid",
     "Plane",
-    "Monkey2",
+    "Monkey",
     "TreePlane",
     "Island"
   ],
@@ -14,8 +14,9 @@
     "Metal",
     "Stone",
     "Fur",
-    "PineTree",
-    "Dirt"
+    "~PineTree",
+    "Dirt",
+    "Particle"
   ],
 
   "materials": [
@@ -36,14 +37,13 @@
 
   "objects": [
     {
-      "mesh": "Monkey2",
+      "mesh": "Monkey",
       "tex": "Fur",
       "mat": "Dull",
       "pos": [ 0.0, 0.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false,
-      "bill": false
+      "trans": false
     },
 
     {
@@ -53,8 +53,7 @@
       "pos": [ 0.0, -12.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 6.0, 6.0, 6.0 ],
-      "trans": false,
-      "bill": false
+      "trans": false
     },
 
     {
@@ -64,8 +63,7 @@
       "pos": [ 0.0, 15.0, 0.0 ],
       "rot": [ 0.0, 45.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": false,
-      "bill": false
+      "trans": false
     },
 
     {
@@ -75,8 +73,7 @@
       "pos": [ -14.0, 2.0, -10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true,
-      "bill": false
+      "trans": true
     },
 
     {
@@ -86,8 +83,7 @@
       "pos": [ -10.0, 2.0, -10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true,
-      "bill": false
+      "trans": true
     },
 
     {
@@ -97,8 +93,7 @@
       "pos": [ -14.0, 2.0, -6.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true,
-      "bill": false
+      "trans": true
     },
 
     {
@@ -108,63 +103,57 @@
       "pos": [ -13.0, 6.0, -8.0 ],
       "rot": [ 0.0, 25.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": true,
-      "bill": false
+      "trans": true
     },
 
     {
       "mesh": "TreePlane",
-      "tex": "PineTree",
+      "tex": "~PineTree",
       "mat": "Dull",
       "pos": [ 13.0, 4.0, -7.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false,
-      "bill": true
+      "trans": false
     },
 
     {
       "mesh": "TreePlane",
-      "tex": "PineTree",
+      "tex": "~PineTree",
       "mat": "Dull",
       "pos": [ 7.0, 4.0, 5.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false,
-      "bill": true
+      "trans": false
     },
 
     {
       "mesh": "TreePlane",
-      "tex": "PineTree",
+      "tex": "~PineTree",
       "mat": "Dull",
       "pos": [ 1.0, 4.0, -2.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false,
-      "bill": true
+      "trans": false
     },
 
     {
       "mesh": "TreePlane",
-      "tex": "PineTree",
+      "tex": "~PineTree",
       "mat": "Dull",
       "pos": [ -5.0, 4.0, 11.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false,
-      "bill": true
+      "trans": false
     },
 
     {
       "mesh": "TreePlane",
-      "tex": "PineTree",
+      "tex": "~PineTree",
       "mat": "Dull",
       "pos": [ -11.0, 4.0, 3.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "trans": false,
-      "bill": true
+      "trans": false
     },
 
     {
@@ -174,8 +163,7 @@
       "pos": [ 10.0, 2.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": false,
-      "bill": false
+      "trans": false
     },
 
     {
@@ -185,8 +173,7 @@
       "pos": [ 10.0, 5.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": false,
-      "bill": false
+      "trans": false
     },
 
     {
@@ -196,8 +183,7 @@
       "pos": [ 6.0, 1.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "trans": false,
-      "bill": false
+      "trans": false
     }
   ]
 }

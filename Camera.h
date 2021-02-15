@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Resources/Structs.h"
-#include "Resources/Constants.h"
+#include "Structs.h"
+#include "Constants.h"
 #include "Math.h"
 
 class Camera
