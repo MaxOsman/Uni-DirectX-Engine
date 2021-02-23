@@ -54,9 +54,9 @@ Application::~Application()
 HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 {
     if (FAILED(InitWindow(hInstance, nCmdShow)))
-	{
+    {
         return E_FAIL;
-	}
+    }
 
     RECT rc;
     GetClientRect(_hWnd, &rc);
@@ -75,7 +75,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     orbitAngle = 0.0f;
     playerSpeed = 10.0f;
 
-    camera = new Camera(_WindowWidth, _WindowHeight, 
+    camera = new Camera(_WindowWidth, _WindowHeight,
         { 0.0f, 20.0f, 15.0f },
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f });
@@ -108,9 +108,11 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     particleManager = new ParticleManager(10);
 
-    FireParticleSystem* fireSystem = new FireParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
+    /*FireParticleSystem* fireSystem = new FireParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
     fireSystem->Initialise();
-    particleManager->AddSystem(fireSystem);
+    particleManager->AddSystem(fireSystem);*/
+
+    _objects[PHYSOBJECT].CalcTorque({10,0,0});
       
 	return S_OK;
 }
@@ -226,7 +228,7 @@ void Application::LoadObjectData()
                                                 trans,
                                                 bill);
         bool terrain;
-        if (i == PLAYEROBJECT)
+        if (i == PLAYEROBJECT || i == PHYSOBJECT)
             terrain = false;
         else
             terrain = true;
@@ -703,7 +705,9 @@ void Application::Update()
         //Once per frame
         for (size_t i = 0; i < _objects.size(); ++i)
         {
-            if(!_objects[i].GetTerrain())
+            if(_objects[i].GetTerrain())
+                _objects[i].UpdateWorldMatrix();
+            else
                 _objects[i].Update(deltaTime);
         }
 

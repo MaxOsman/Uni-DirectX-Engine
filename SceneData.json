@@ -184,6 +184,16 @@
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
       "trans": false
+    },
+
+    {
+      "mesh": "Cube",
+      "tex": "Metal",
+      "mat": "Shiny",
+      "pos": [ 0.0, 0.0, 10.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "trans": false
     }
   ]
 }

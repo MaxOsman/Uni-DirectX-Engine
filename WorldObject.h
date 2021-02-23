@@ -6,6 +6,7 @@
 #include "ParticleModel.h"
 #include "Appearance.h"
 #include "Quaternion.h"
+#include "Debug.h"
 
 class WorldObject
 {
@@ -14,9 +15,16 @@ private:
 	ParticleModel* particleModel;
 	Appearance* appearance;
 	bool isStaticTerrain;
+	Quaternion* quat;
+	Debug* debug = new Debug();
 
+	float width = 2.0f;			//Temporary, only true for cube objects!
 	XMFLOAT3X3 inertiaTensor;
-	float angularDamping = 0.5;
+	float angDamping = 0.9f;
+	Vector3D torque = {0,0,0};
+	Vector3D angAccel = {0,0,0};
+	Vector3D angVelocity = {0,0,0};
+	XMFLOAT4X4 worldMatrix;
 
 public:
 	WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain);
@@ -34,13 +42,18 @@ public:
 	void SetPos(Vector3D p) { transform->SetPos(p); }
 	void SetRot(Vector3D r) { transform->SetRot(r); }
 	void SetScale(Vector3D s) { transform->SetScale(s); }
+	void SetAngAccel(Vector3D a) { angAccel = a; }
 
-	Vector3D GetTorque(Vector3D force, Vector3D pos) { return pos.cross_product(force); }
+	void CalcTorque(Vector3D force) { torque = transform->GetPos().cross_product(force); }
+	void CalcAngularAccel();
+	void UpdateRotationalSpeed(float deltaTime);
+	void UpdateRotationalOrientation(float deltaTime);
 
 	void CameraTranslate(XMFLOAT3 d, Camera* cam);
 	void PlayerMove(XMFLOAT3 a, Camera* cam);
 	void PlayerJump(float jump);
 
 	void Update(float deltaTime);
+	void UpdateWorldMatrix();
 	void Render(ConstantBuffer cb, ID3D11DeviceContext* pImmediateContext, ID3D11Buffer* pConstantBuffer, ID3D11BlendState* transparency, float yaw);
 };
