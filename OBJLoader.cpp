@@ -62,6 +62,112 @@ void OBJLoader::CreateIndices(const std::vector<XMFLOAT3>& inVertices,
 	}
 }
 
+MeshData OBJLoader::DataToBuffers(	const vector<XMFLOAT3> verts,
+									const vector<XMFLOAT3> normals,
+									const vector<XMFLOAT2> texCoords,
+									const vector<unsigned short> vertIndices,
+									const vector<unsigned short> normalIndices,
+									const vector<unsigned short> textureIndices,
+									ID3D11Device* _pd3dDevice,
+									std::string binaryFilename)
+{
+	//Get vectors to be of same size, ready for singular indexing
+	std::vector<XMFLOAT3> expandedVertices;
+	std::vector<XMFLOAT3> expandedNormals;
+	std::vector<XMFLOAT2> expandedTexCoords;
+	unsigned int numIndices = vertIndices.size();
+	for (unsigned int i = 0; i < numIndices; i++)
+	{
+		expandedVertices.push_back(verts[vertIndices[i]]);
+		expandedTexCoords.push_back(texCoords[textureIndices[i]]);
+		expandedNormals.push_back(normals[normalIndices[i]]);
+	}
+
+	//Now to (finally) form the final vertex, texture coord, normal list and single index buffer using the above expanded vectors
+	std::vector<unsigned short> meshIndices;
+	meshIndices.reserve(numIndices);
+	std::vector<XMFLOAT3> meshVertices;
+	meshVertices.reserve(expandedVertices.size());
+	std::vector<XMFLOAT3> meshNormals;
+	meshNormals.reserve(expandedNormals.size());
+	std::vector<XMFLOAT2> meshTexCoords;
+	meshTexCoords.reserve(expandedTexCoords.size());
+
+	OBJLoader::CreateIndices(expandedVertices, expandedTexCoords, expandedNormals, meshIndices, meshVertices, meshTexCoords, meshNormals);
+
+	MeshData meshData;
+
+	//Turn data from vector form to arrays
+	SimpleVertex* finalVerts = new SimpleVertex[meshVertices.size()];
+	unsigned int numMeshVertices = meshVertices.size();
+	for (unsigned int i = 0; i < numMeshVertices; ++i)
+	{
+		finalVerts[i].Pos = meshVertices[i];
+		finalVerts[i].Normal = meshNormals[i];
+		finalVerts[i].TexC = meshTexCoords[i];
+	}
+
+	//Put data into vertex and index buffers, then pass the relevant data to the MeshData object.
+	//The rest of the code will hopefully look familiar to you, as it's similar to whats in your InitVertexBuffer and InitIndexBuffer methods
+	ID3D11Buffer* vertexBuffer;
+
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(SimpleVertex) * meshVertices.size();
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = finalVerts;
+
+	_pd3dDevice->CreateBuffer(&bd, &InitData, &vertexBuffer);
+
+	meshData.VertexBuffer = vertexBuffer;
+	meshData.VBOffset = 0;
+	meshData.VBStride = sizeof(SimpleVertex);
+
+	unsigned short* indicesArray = new unsigned short[meshIndices.size()];
+	unsigned int numMeshIndices = meshIndices.size();
+	for (unsigned int i = 0; i < numMeshIndices; ++i)
+	{
+		indicesArray[i] = meshIndices[i];
+	}
+
+	if (binaryFilename != "")
+	{
+		//Output data into binary file, the next time you run this function, the binary file will exist and will load that instead which is much quicker than parsing into vectors
+		std::ofstream outbin(binaryFilename.c_str(), std::ios::out | std::ios::binary);
+		outbin.write((char*)&numMeshVertices, sizeof(unsigned int));
+		outbin.write((char*)&numMeshIndices, sizeof(unsigned int));
+		outbin.write((char*)finalVerts, sizeof(SimpleVertex) * numMeshVertices);
+		outbin.write((char*)indicesArray, sizeof(unsigned short) * numMeshIndices);
+		outbin.close();
+	}
+
+	ID3D11Buffer* indexBuffer;
+
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(WORD) * meshIndices.size();
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = indicesArray;
+	_pd3dDevice->CreateBuffer(&bd, &InitData, &indexBuffer);
+
+	meshData.IndexCount = meshIndices.size();
+	meshData.IndexBuffer = indexBuffer;
+
+	//This data has now been sent over to the GPU so we can delete this CPU-side stuff
+	delete[] indicesArray;
+	delete[] finalVerts;
+
+	return meshData;
+}
+
 //WARNING: This code makes a big assumption -- that your models have texture coordinates AND normals which they should have anyway (else you can't do texturing and lighting!)
 //If your .obj file has no lines beginning with "vt" or "vn", then you'll need to change the Export settings in your modelling software so that it exports the texture coordinates 
 //and normals. If you still have no "vt" lines, you'll need to do some texture unwrapping, also known as UV unwrapping.
@@ -167,98 +273,7 @@ MeshData OBJLoader::Load(char* filename, ID3D11Device* _pd3dDevice, bool invertT
 			}
 			inFile.close(); //Finished with input file now, all the data we need has now been loaded in
 
-			//Get vectors to be of same size, ready for singular indexing
-			std::vector<XMFLOAT3> expandedVertices;
-			std::vector<XMFLOAT3> expandedNormals;
-			std::vector<XMFLOAT2> expandedTexCoords;
-			unsigned int numIndices = vertIndices.size();
-			for(unsigned int i = 0; i < numIndices; i++)
-			{
-				expandedVertices.push_back(verts[vertIndices[i]]);
-				expandedTexCoords.push_back(texCoords[textureIndices[i]]);
-				expandedNormals.push_back(normals[normalIndices[i]]);
-			}
-
-			//Now to (finally) form the final vertex, texture coord, normal list and single index buffer using the above expanded vectors
-			std::vector<unsigned short> meshIndices;
-			meshIndices.reserve(numIndices);
-			std::vector<XMFLOAT3> meshVertices;
-			meshVertices.reserve(expandedVertices.size());
-			std::vector<XMFLOAT3> meshNormals;
-			meshNormals.reserve(expandedNormals.size());
-			std::vector<XMFLOAT2> meshTexCoords;
-			meshTexCoords.reserve(expandedTexCoords.size());
-
-			CreateIndices(expandedVertices, expandedTexCoords, expandedNormals, meshIndices, meshVertices, meshTexCoords, meshNormals);
-
-			MeshData meshData;
-
-			//Turn data from vector form to arrays
-			SimpleVertex* finalVerts = new SimpleVertex[meshVertices.size()];
-			unsigned int numMeshVertices = meshVertices.size();
-			for(unsigned int i = 0; i < numMeshVertices; ++i)
-			{
-				finalVerts[i].Pos = meshVertices[i];
-				finalVerts[i].Normal = meshNormals[i];
-				finalVerts[i].TexC = meshTexCoords[i];
-			}
-
-			//Put data into vertex and index buffers, then pass the relevant data to the MeshData object.
-			//The rest of the code will hopefully look familiar to you, as it's similar to whats in your InitVertexBuffer and InitIndexBuffer methods
-			ID3D11Buffer* vertexBuffer;
-
-			D3D11_BUFFER_DESC bd;
-			ZeroMemory(&bd, sizeof(bd));
-			bd.Usage = D3D11_USAGE_DEFAULT;
-			bd.ByteWidth = sizeof(SimpleVertex) * meshVertices.size();
-			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-			bd.CPUAccessFlags = 0;
-
-			D3D11_SUBRESOURCE_DATA InitData;
-			ZeroMemory(&InitData, sizeof(InitData));
-			InitData.pSysMem = finalVerts;
-
-			_pd3dDevice->CreateBuffer(&bd, &InitData, &vertexBuffer);
-
-			meshData.VertexBuffer = vertexBuffer;
-			meshData.VBOffset = 0;
-			meshData.VBStride = sizeof(SimpleVertex);
-
-			unsigned short* indicesArray = new unsigned short[meshIndices.size()];
-			unsigned int numMeshIndices = meshIndices.size();
-			for(unsigned int i = 0; i < numMeshIndices; ++i)
-			{
-				indicesArray[i] = meshIndices[i];
-			}
-
-			//Output data into binary file, the next time you run this function, the binary file will exist and will load that instead which is much quicker than parsing into vectors
-			std::ofstream outbin(binaryFilename.c_str(), std::ios::out | std::ios::binary);
-			outbin.write((char*)&numMeshVertices, sizeof(unsigned int));
-			outbin.write((char*)&numMeshIndices, sizeof(unsigned int));
-			outbin.write((char*)finalVerts, sizeof(SimpleVertex) * numMeshVertices);
-			outbin.write((char*)indicesArray, sizeof(unsigned short) * numMeshIndices);
-			outbin.close();
-
-			ID3D11Buffer* indexBuffer;
-
-			ZeroMemory(&bd, sizeof(bd));
-			bd.Usage = D3D11_USAGE_DEFAULT;
-			bd.ByteWidth = sizeof(WORD) * meshIndices.size();     
-			bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-			bd.CPUAccessFlags = 0;
-
-			ZeroMemory(&InitData, sizeof(InitData));
-			InitData.pSysMem = indicesArray;
-			_pd3dDevice->CreateBuffer(&bd, &InitData, &indexBuffer);
-
-			meshData.IndexCount = meshIndices.size();
-			meshData.IndexBuffer = indexBuffer;
-
-			//This data has now been sent over to the GPU so we can delete this CPU-side stuff
-			delete [] indicesArray;
-			delete [] finalVerts;
-
-			return meshData;
+			return OBJLoader::DataToBuffers(verts, normals, texCoords, vertIndices, normalIndices, textureIndices, _pd3dDevice, binaryFilename);
 		}	
 	}
 	else

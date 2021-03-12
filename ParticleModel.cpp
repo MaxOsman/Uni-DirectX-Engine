@@ -10,10 +10,7 @@ ParticleModel::ParticleModel(Transform* t, Vector3D v, float m)
     weightForce = { 0.0f, -G * mass, 0.0f };
 }
 
-ParticleModel::ParticleModel()
-{
-    
-}
+ParticleModel::ParticleModel() {}
 
 ParticleModel::~ParticleModel()
 {
@@ -124,4 +121,64 @@ void ParticleModel::UpdateGround()
     }
     else
         isGrounded = false;
+}
+
+bool ParticleModel::SphereCollision(Vector3D position, float radius)
+{
+    return (position.distance(transform->GetPos()) < (radius + boundSphereRadius));
+}
+
+bool ParticleModel::AABBCollision(Vector3D corner2, Vector3D widths2)
+{
+    // developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+    /*if((corner.x + transform->GetPos().x <= corner2.x + widths2.x && corner.x + transform->GetPos().x + widths.x >= corner2.x) &&
+        (corner.y + transform->GetPos().y <= corner2.y + widths2.y && corner.y + transform->GetPos().y + widths.y >= corner2.y) &&
+        (corner.z + transform->GetPos().z <= corner2.z + widths2.z && corner.z + transform->GetPos().z + widths.z >= corner2.z))
+    return { true, FORWARD, distance };
+    
+    return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };*/
+
+    return  (corner.x + transform->GetPos().x <= corner2.x + widths2.x && corner.x + transform->GetPos().x + widths.x >= corner2.x) &&
+            (corner.y + transform->GetPos().y <= corner2.y + widths2.y && corner.y + transform->GetPos().y + widths.y >= corner2.y) &&
+            (corner.z + transform->GetPos().z <= corner2.z + widths2.z && corner.z + transform->GetPos().z + widths.z >= corner2.z);
+}
+
+CollisionData ParticleModel::SphereAABBCollision(Vector3D position1, float radius1, Vector3D corner2, Vector3D widths2)
+{
+    // developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+    float x = max(corner2.x, min(position1.x, corner2.x + widths2.x));
+    float y = max(corner2.y, min(position1.y, corner2.y + widths2.y));
+    float z = max(corner2.z, min(position1.z, corner2.z + widths2.z));
+
+    //float distance = sqrt((x - position1.x) * (x - position1.x) + (y - position1.y) * (y - position1.y) + (z - position1.z) * (z - position1.z));
+    Vector3D distance = { x - position1.x , y - position1.y , z - position1.z };
+    if (distance.magnitude() < radius1)
+        return { true, VectorDirection(distance), distance };
+
+    return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };
+}
+
+Directions ParticleModel::VectorDirection(Vector3D target)
+{
+    // learnopengl.com/In-Practice/2D-Game/Collisions/Collision-resolution
+    Vector3D directions[6] = {  Vector3D(1.0f, 0.0f, 0.0f),
+                                Vector3D(-1.0f, 0.0f, 0.0f),
+                                Vector3D(0.0f, 1.0f, 0.0f),
+                                Vector3D(0.0f, -1.0f, 0.0f),
+                                Vector3D(0.0f, 0.0f, 1.0f),
+                                Vector3D(0.0f, 0.0f, -1.0f) };
+
+    float max = 0.0f;
+    short bestMatch = -1;
+    for (short x = 0; x < 6; ++x)
+    {
+        float dotProduct = target.normalization().dot_product(directions[x]);
+        if (dotProduct > max)
+        {
+            max = dotProduct;
+            bestMatch = x;
+        }
+    }
+
+    return (Directions)bestMatch;
 }

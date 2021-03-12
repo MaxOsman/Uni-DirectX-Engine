@@ -1,19 +1,22 @@
 #pragma once
 
-#include "Structs.h"
-#include "Camera.h"
-#include "Light.h"
+#define GRID_WIDTH 64
+#define GRID_DEPTH 64
+
 #include "DDSTextureLoader.h"
 #include <vector>
 #include "OBJLoader.h"
 #include "json.hpp"
 #include <iostream>
-#include "WorldObject.h"
-#include "Debug.h"
 #include <d3dcompiler.h>
 #include <directxmath.h>
 #include <directxcolors.h>
 
+#include "Structs.h"
+#include "Camera.h"
+#include "Light.h"
+#include "WorldObject.h"
+#include "Debug.h"
 #include "ParticleManager.h"
 #include "FireParticleSystem.h"
 
@@ -60,14 +63,21 @@ private:
 	UINT _WindowHeight;
 	UINT _WindowWidth;
 	DWORD dwTimeStart = 0;
+	float heightScale = 15.0f;
 
 private:
 	HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 	HRESULT InitDevice();
 	void Cleanup();
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
-	HRESULT InitShadersAndInputLayout();
+	HRESULT InitShadersAndInputLayout(WCHAR* fileName);
+
 	void LoadObjectData();
+	vector<float> *LoadHeightMap();
+
+	void ConfineCursor();
+	void FreeCursor();
+	void CollisionDetection(int i, float deltaTime);
 
 public:
 	Application();
@@ -76,10 +86,6 @@ public:
 	HRESULT Initialise(HINSTANCE hInstance, int nCmdShow);
 	bool HandleKeyboard(MSG msg);
 	void HandlePerFrameInput(float deltaTime);
-	void SetSpeed();
-
-	void ConfineCursor();
-	void FreeCursor();
 	
 	void Update();
 	void Draw();

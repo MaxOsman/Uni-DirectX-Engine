@@ -7,6 +7,7 @@
 #include <map>			//For fast searching when re-creating the index buffer
 
 using namespace DirectX;
+using std::vector;
 
 struct MeshData
 {
@@ -39,5 +40,7 @@ namespace OBJLoader
 	bool FindSimilarVertex(const SimpleVertex& vertex, std::map<SimpleVertex, unsigned short>& vertToIndexMap, unsigned short& index);
 
 	//Re-creates a single index buffer from the 3 given in the OBJ file
-	void CreateIndices(const std::vector<XMFLOAT3>& inVertices, const std::vector<XMFLOAT2>& inTexCoords, const std::vector<XMFLOAT3>& inNormals, std::vector<unsigned short>& outIndices, std::vector<XMFLOAT3>& outVertices, std::vector<XMFLOAT2>& outTexCoords, std::vector<XMFLOAT3>& outNormals);
+	void CreateIndices(const vector<XMFLOAT3>& inVertices, const vector<XMFLOAT2>& inTexCoords, const vector<XMFLOAT3>& inNormals, vector<unsigned short>& outIndices, vector<XMFLOAT3>& outVertices, vector<XMFLOAT2>& outTexCoords, vector<XMFLOAT3>& outNormals);
+
+	MeshData DataToBuffers(const vector<XMFLOAT3> verts, vector<XMFLOAT3> normals, vector<XMFLOAT2> texCoords, vector<unsigned short> vertIndices, vector<unsigned short> normalIndices, vector<unsigned short> textureIndices, ID3D11Device* _pd3dDevice, std::string binaryFilename);
 };

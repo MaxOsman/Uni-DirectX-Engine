@@ -117,11 +117,39 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 	return S_OK;
 }
 
+vector<float>* Application::LoadHeightMap()
+{
+    // A height for each vertex 
+    vector<unsigned char> in(GRID_WIDTH * GRID_DEPTH);
+
+    // Open the file.
+    ifstream inFile;
+    inFile.open("TerrainAssets/terrain2.raw", ios_base::binary);
+
+    if (inFile)
+    {
+        // Read the RAW bytes.
+        inFile.read((char*)&in[0], (streamsize)in.size());
+        // Done with file.
+        inFile.close();
+    }
+
+    vector<float> *tempHeights = new vector<float>;
+    // Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
+    for (UINT i = 0; i < GRID_WIDTH * GRID_DEPTH; ++i)
+    {
+        tempHeights->push_back((in[i] / 255.0f) * heightScale);
+    }
+
+    return tempHeights;
+}
+
 void Application::LoadObjectData()
 {
     //Set up JSON
     json j;
     ifstream t("SceneData.json");
+    //ifstream t("SceneDataProcedural.json");
     t >> j;
 
     //Get stuff from JSON
@@ -135,6 +163,63 @@ void Application::LoadObjectData()
     {
         _meshes.push_back({ OBJLoader::Load((char*)("Assets/mesh" + (string)meshPaths.at(i) + ".obj").c_str(), _pd3dDevice), meshPaths.at(i) });      //Mesh
     }
+
+    //Tri grid
+    vector<XMFLOAT3> verts;
+    vector<XMFLOAT3> normals;
+    vector<XMFLOAT2> texCoords;
+    vector<unsigned short> vertIndices;
+    vector<unsigned short> normalIndices;
+    vector<unsigned short> textureIndices;
+
+    vector<float>* heights = LoadHeightMap();
+
+    for (size_t i = 0; i < GRID_WIDTH; ++i)
+    {
+        for (size_t j = 0; j < GRID_DEPTH; ++j)
+        {
+            verts.push_back({ 1.0f * i - GRID_WIDTH / 2, heights->at(j + i * GRID_WIDTH), 1.0f * j - GRID_DEPTH / 2 });
+        }
+    }
+    normals.push_back({0.0f, 1.0f, 0.0f});
+    texCoords.push_back({ 0.0f, 0.0f });
+    texCoords.push_back({ 1.0f, 0.0f });
+    texCoords.push_back({ 0.0f, 1.0f });
+    texCoords.push_back({ 1.0f, 1.0f });
+
+    for (size_t i = 0; i < GRID_WIDTH-1; ++i)
+    {
+        for (size_t j = 0; j < GRID_DEPTH-1; ++j)
+        {
+            vertIndices.push_back(i * GRID_WIDTH + j);
+            vertIndices.push_back(i * GRID_WIDTH + j + 1);
+            vertIndices.push_back((i + 1) * GRID_WIDTH + j);
+            vertIndices.push_back((i + 1) * GRID_WIDTH + j);
+            vertIndices.push_back(i * GRID_WIDTH + j + 1);
+            vertIndices.push_back((i + 1) * GRID_WIDTH + j + 1);
+
+            normalIndices.push_back(0);
+            normalIndices.push_back(0);
+            normalIndices.push_back(0);
+            normalIndices.push_back(0);
+            normalIndices.push_back(0);
+            normalIndices.push_back(0);
+
+            textureIndices.push_back(0);
+            textureIndices.push_back(1);
+            textureIndices.push_back(2);
+            textureIndices.push_back(2);
+            textureIndices.push_back(1);
+            textureIndices.push_back(3);
+        }
+    }
+
+    MeshData gridMesh = OBJLoader::DataToBuffers(verts, normals, texCoords, vertIndices, normalIndices, textureIndices, _pd3dDevice, "");
+
+    IndexedMesh triGrid = IndexedMesh();
+    triGrid.meshData = gridMesh;
+    triGrid.name = "GridMesh";
+    _meshes.push_back(triGrid);
 
     //Textures
     for (size_t i = 0; i < texPaths.size(); ++i)
@@ -166,11 +251,11 @@ void Application::LoadObjectData()
         int meshIndex = 0;
         for (int j = 0; j < _meshes.size(); ++j)
         {
-            if (meshName == "BasicCube")
+            /*if (meshName == "BasicCube")
             {
                 meshIndex = j;
                 break;
-            }
+            }*/
             if (meshName == _meshes[j].name)
             {
                 meshIndex = j;
@@ -228,28 +313,33 @@ void Application::LoadObjectData()
                                                 trans,
                                                 bill);
         bool terrain;
-        if (i == PLAYEROBJECT || i == PHYSOBJECT)
+        float mass;
+        if (i == PLAYEROBJECT || i == PHYSOBJECT || i == 16)
             terrain = false;
         else
             terrain = true;
 
-        _objects.push_back({ tempTrans, tempApp, { 0.0f, 0.0f, 0.0f }, 20.0f, terrain });
+        if (i == PLAYEROBJECT)
+            mass = 8.0f;
+        else
+            mass = 20.0f;
+
+        _objects.push_back({ tempTrans, tempApp, { 0.0f, 0.0f, 0.0f }, mass, terrain, meshName });
 
     }
 }
 
-HRESULT Application::InitShadersAndInputLayout()
+HRESULT Application::InitShadersAndInputLayout(WCHAR* fileName)
 {
 	HRESULT hr;
 
     // Compile the vertex shader
     ID3DBlob* pVSBlob = nullptr;
-    hr = CompileShaderFromFile(L"DX11 Framework.fx", "VS", "vs_4_0", &pVSBlob);
+    hr = CompileShaderFromFile(fileName, "VS", "vs_4_0", &pVSBlob);
 
     if (FAILED(hr))
     {
-        MessageBox(nullptr,
-                   L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        MessageBox(nullptr, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
         return hr;
     }
 
@@ -264,12 +354,11 @@ HRESULT Application::InitShadersAndInputLayout()
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
-    hr = CompileShaderFromFile(L"DX11 Framework.fx", "PS", "ps_4_0", &pPSBlob);
+    hr = CompileShaderFromFile(fileName, "PS", "ps_4_0", &pPSBlob);
 
     if (FAILED(hr))
     {
-        MessageBox(nullptr,
-                   L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        MessageBox(nullptr, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
         return hr;
     }
 
@@ -291,11 +380,8 @@ HRESULT Application::InitShadersAndInputLayout()
 	UINT numElements = ARRAYSIZE(layout);
 
     // Create the input layout
-	hr = _pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-                                        pVSBlob->GetBufferSize(), &_pVertexLayout);
+	hr = _pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &_pVertexLayout);
 	pVSBlob->Release();
-
-    
     
 	if (FAILED(hr))
         return hr;
@@ -375,7 +461,6 @@ HRESULT Application::CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoin
 HRESULT Application::InitDevice()
 {
     HRESULT hr = S_OK;
-
     UINT createDeviceFlags = 0;
 
 #ifdef _DEBUG
@@ -463,7 +548,35 @@ HRESULT Application::InitDevice()
     vp.TopLeftY = 0;
     _pImmediateContext->RSSetViewports(1, &vp);
 
-	InitShadersAndInputLayout();
+    // Create the sample state
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    InitShadersAndInputLayout(L"DX11 Framework Terrain.fx");
+    _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
+
+    //Get right textures for the shader
+    for (int i = 0; i < _textures.size(); ++i)
+    {
+        if (_textures[i].name == "DirtLight")
+            _pImmediateContext->PSSetShaderResources(0, 1, &_textures[i].texture);
+        else if (_textures[i].name == "Grass")
+            _pImmediateContext->PSSetShaderResources(1, 1, &_textures[i].texture);
+        else if (_textures[i].name == "Stone2")
+            _pImmediateContext->PSSetShaderResources(2, 1, &_textures[i].texture);
+        else if (_textures[i].name == "Snow")
+            _pImmediateContext->PSSetShaderResources(3, 1, &_textures[i].texture);
+    }
+
+	InitShadersAndInputLayout(L"DX11 Framework.fx");
+    _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
 
     // Set index buffer
     //_pImmediateContext->IASetIndexBuffer(_pIndexBuffers[0], DXGI_FORMAT_R16_UINT, 0);
@@ -493,19 +606,6 @@ HRESULT Application::InitDevice()
     sldesc.FillMode = D3D11_FILL_SOLID;
     sldesc.CullMode = D3D11_CULL_BACK;
     hr = _pd3dDevice->CreateRasterizerState(&sldesc, &_solid);
-
-    // Create the sample state
-    D3D11_SAMPLER_DESC sampDesc;
-    ZeroMemory(&sampDesc, sizeof(sampDesc));
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-    _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
 
     //Blend equation
     D3D11_BLEND_DESC blendDesc;
@@ -576,7 +676,7 @@ bool Application::HandleKeyboard(MSG msg)
             return true;
 
         case VK_SPACE:
-            _objects[PLAYEROBJECT].PlayerJump(5000.0f);
+            _objects[PLAYEROBJECT].PlayerJump(3000.0f);
             return true;
         }
     }
@@ -680,6 +780,180 @@ void Application::Cleanup()
     if (_transparency) _transparency->Release();
 }
 
+void Application::CollisionDetection(int i, float deltaTime)
+{
+    if (_objects[i].GetParticle()->GetCollisionType() == COLLISION_SPHERE)
+    {
+        for (unsigned int j = 0; j < _objects.size(); ++j)
+        {
+            // Collision, but only with physics objects and not with self, and make sure it doesn't happen twice
+            if (i != j && !_objects[j].GetTerrain())
+            {
+                if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_SPHERE)
+                {
+                    //Both spheres
+                    if (_objects[i].GetParticle()->SphereCollision(_objects[j].GetPos(), _objects[j].GetParticle()->GetRadius()))
+                    {
+                        _objects[i].GetParticle()->SetVelocity({ 0,0,0 });
+                        _objects[j].GetParticle()->SetVelocity({ 0,0,0 });
+                    }
+                }
+                else if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_AABB)
+                {
+                    //Sphere and AABB, i is sphere
+                    CollisionData coll = _objects[i].GetParticle()->SphereAABBCollision(_objects[i].GetPos(), _objects[i].GetParticle()->GetRadius(), _objects[j].GetParticle()->GetCorner() + _objects[j].GetPos(), _objects[j].GetParticle()->GetWidths());
+                    if (coll.isCollided)
+                    {
+                        Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetPos() - _objects[i].GetPos());
+                        float penetration;
+                        float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+                        float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+                        switch (dir)
+                        {
+                        case FORWARD:
+                        case BACK:
+                            _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
+                            penetration = _objects[i].GetParticle()->GetRadius() - abs(coll.difference.x);
+                            if (dir == FORWARD)
+                            {
+                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x + penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x - penetration * massFormulaJ);
+                            }
+                            else
+                            {
+                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x - penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x + penetration * massFormulaJ);
+                            }
+                            break;
+                        case UP:
+                        case DOWN:
+                            _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
+                            penetration = _objects[i].GetParticle()->GetRadius() - abs(coll.difference.y);
+                            if (dir == UP)
+                            {
+                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y + penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y - penetration * massFormulaJ);
+                            }
+                            else
+                            {
+                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y - penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y + penetration * massFormulaJ);
+                            }
+                            break;
+                        case LEFT:
+                        case RIGHT:
+                            _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
+                            penetration = _objects[i].GetParticle()->GetRadius() - abs(coll.difference.z);
+                            if (dir == LEFT)
+                            {
+                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z + penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z - penetration * massFormulaJ);
+                            }
+                            else
+                            {
+                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z - penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z + penetration * massFormulaJ);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (_objects[i].GetParticle()->GetCollisionType() == COLLISION_AABB)
+    {
+        for (unsigned int j = 0; j < _objects.size(); ++j)
+        {
+            // Collision, but only with physics objects and not with self, and make sure it doesn't happen twice
+            if (i != j && !_objects[j].GetTerrain())
+            { 
+                if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_SPHERE)
+                {
+                    // Sphere and AABB, i is AABB
+                    CollisionData coll = _objects[i].GetParticle()->SphereAABBCollision(_objects[j].GetPos(), _objects[j].GetParticle()->GetRadius(), _objects[i].GetParticle()->GetCorner() + _objects[i].GetPos(), _objects[i].GetParticle()->GetWidths());
+                    if (coll.isCollided)
+                    {
+                        Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetPos() - _objects[i].GetPos());
+                        float penetration;
+                        float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+                        float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+                        switch (dir)
+                        {
+                        case FORWARD:
+                        case BACK:
+                            _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
+                            penetration = _objects[j].GetParticle()->GetRadius() - abs(coll.difference.x);
+                            if (dir == FORWARD)
+                            {
+                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x - penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x + penetration * massFormulaJ);
+                            }     
+                            else
+                            {
+                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x + penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x - penetration * massFormulaJ);
+                            }                               
+                            break;
+                        case UP:
+                        case DOWN:
+                            _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
+                            penetration = _objects[j].GetParticle()->GetRadius() - abs(coll.difference.y);
+                            if (dir == UP)
+                            {
+                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y - penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y + penetration * massFormulaJ);
+                            }         
+                            else
+                            {
+                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y + penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y - penetration * massFormulaJ);
+                            }
+                            break;
+                        case LEFT:
+                        case RIGHT:
+                            _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
+                            penetration = _objects[j].GetParticle()->GetRadius() - abs(coll.difference.z);
+                            if (dir == LEFT)
+                            {
+                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z - penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z + penetration * massFormulaJ);
+                            }
+                            else
+                            {
+                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z + penetration * massFormulaI);
+                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z - penetration * massFormulaJ);
+                            }
+                        }
+                    }
+                }
+                else if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_AABB)
+                {
+                    // Both AABBs
+                    if (_objects[i].GetParticle()->AABBCollision(_objects[j].GetParticle()->GetCorner() + _objects[j].GetPos(), _objects[j].GetParticle()->GetWidths()))
+                    {
+                        Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetPos() - _objects[i].GetPos());
+                        _objects[i].SetPos(_objects[i].GetPos() + _objects[i].GetParticle()->GetVelocity() * -1.0f * deltaTime);
+                        switch (dir)
+                        {
+                        case FORWARD:
+                        case BACK:
+                            _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
+                            break;
+                        case UP:
+                        case DOWN:
+                            _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
+                            break;
+                        case LEFT:
+                        case RIGHT:
+                            _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void Application::Update()
 {
     // Update our time
@@ -703,12 +977,16 @@ void Application::Update()
             return;
 
         //Once per frame
-        for (size_t i = 0; i < _objects.size(); ++i)
+
+        for (unsigned int i = 0; i < _objects.size(); ++i)
         {
             if(_objects[i].GetTerrain())
                 _objects[i].UpdateWorldMatrix();
             else
+            {
                 _objects[i].Update(deltaTime);
+                CollisionDetection(i, deltaTime);
+            }          
         }
 
         particleManager->Update(deltaTime);
@@ -717,10 +995,10 @@ void Application::Update()
         XMFLOAT3 tempFloat = { camera->GetEye().x, camera->GetEye().y, camera->GetEye().z };
         light->SetEye(tempFloat);
 
-        //Sphere orbit
         _objects[PLAYEROBJECT].SetRot({ camera->GetPitch(), camera->GetYaw(), 0.0f });
-        _objects[ORBITOBJECT].SetPos({ 15*cos(orbitAngle), 15.0f+cos(orbitAngle)*2, 15*sin(orbitAngle) });
 
+        //Sphere orbit
+        //_objects[ORBITOBJECT].SetPos({ 15*cos(orbitAngle), 15.0f+cos(orbitAngle)*2, 15*sin(orbitAngle) });
         //_cb.gTime = deltaTime;
         orbitAngle += 1.0f * deltaTime;
         if (orbitAngle > XM_2PI)
@@ -773,8 +1051,31 @@ void Application::Draw()
         start = 1;
     for (size_t i = start; i < _objects.size(); ++i)
     {
-        if(!_objects[i].GetTransparent())
-            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
+        if (_objects[i].GetName() == "GridMesh")
+        {
+            InitShadersAndInputLayout(L"DX11 Framework Terrain.fx");
+            for (int i = 0; i < _textures.size(); ++i)
+            {
+                if (_textures[i].name == "DirtLight")
+                    _pImmediateContext->PSSetShaderResources(0, 1, &_textures[i].texture);
+                else if (_textures[i].name == "Grass")
+                    _pImmediateContext->PSSetShaderResources(1, 1, &_textures[i].texture);
+                else if (_textures[i].name == "Stone2")
+                    _pImmediateContext->PSSetShaderResources(2, 1, &_textures[i].texture);
+                else if (_textures[i].name == "Snow")
+                    _pImmediateContext->PSSetShaderResources(3, 1, &_textures[i].texture);
+            }
+
+            if (!_objects[i].GetTransparent())
+                _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
+
+            InitShadersAndInputLayout(L"DX11 Framework.fx");
+        }
+        else
+        {
+            if (!_objects[i].GetTransparent())
+                _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
+        }                
     }
     particleManager->Render(_pImmediateContext, _cb, _pConstantBuffer);
     for (size_t i = start; i < _objects.size(); ++i)

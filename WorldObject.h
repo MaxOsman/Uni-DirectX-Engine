@@ -15,19 +15,20 @@ private:
 	ParticleModel* particleModel;
 	Appearance* appearance;
 	bool isStaticTerrain;
-	Quaternion* quat;
+	std::string name;
+
 	Debug* debug = new Debug();
 
 	float width = 2.0f;			//Temporary, only true for cube objects!
 	XMFLOAT3X3 inertiaTensor;
-	float angDamping = 0.9f;
+	float angDamping = 1.0f;
 	Vector3D torque = {0,0,0};
 	Vector3D angAccel = {0,0,0};
 	Vector3D angVelocity = {0,0,0};
 	XMFLOAT4X4 worldMatrix;
 
 public:
-	WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain);
+	WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain, std::string n);
 	~WorldObject();
 
 	bool GetTransparent() { return appearance->GetTransparent(); }
@@ -38,6 +39,7 @@ public:
 	ParticleModel* GetParticle() { return particleModel; }
 	Appearance* GetAppearance() { return appearance; }
 	bool GetTerrain() { return isStaticTerrain; }
+	std::string GetName() { return name; }
 
 	void SetPos(Vector3D p) { transform->SetPos(p); }
 	void SetRot(Vector3D r) { transform->SetRot(r); }

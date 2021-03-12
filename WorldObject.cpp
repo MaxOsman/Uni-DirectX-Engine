@@ -1,17 +1,17 @@
 #include "WorldObject.h"
 
-WorldObject::WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain)
+WorldObject::WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain, std::string n)
 {
     transform = t;
     appearance = ap;
     isStaticTerrain = staticTerrain;
+    name = n;
     if (staticTerrain)
         particleModel = nullptr;  
     else
     {
-        quat = new Quaternion();
-        quat->r = 0;
         particleModel = new ParticleModel(transform, v, m);
+
         inertiaTensor._11 = particleModel->GetMass() * (width * width * transform->GetScale().y) * (width * width * transform->GetScale().z) / 12.0f;
         inertiaTensor._12 = 0;
         inertiaTensor._13 = 0;
@@ -21,6 +21,14 @@ WorldObject::WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool
         inertiaTensor._31 = 0;
         inertiaTensor._32 = 0;
         inertiaTensor._33 = particleModel->GetMass() * (width * width * transform->GetScale().x) * (width * width * transform->GetScale().y) / 12.0f;
+
+        /*if(name != "Cube")
+            particleModel->SetRadius(width * transform->GetScale().y / 2);
+        else*/
+            particleModel->SetAABBProperties(   { width * transform->GetScale().x, width * transform->GetScale().y, width * transform->GetScale().z },
+                                                {   -width * transform->GetScale().x / 2,
+                                                    -width * transform->GetScale().y / 2,
+                                                    -width * transform->GetScale().z / 2 });
     }
 }
 
@@ -53,17 +61,16 @@ void WorldObject::Render(ConstantBuffer cb, ID3D11DeviceContext* pImmediateConte
     cb.AmbientMtrl = appearance->GetAmbient();
     cb.SpecularMtrl = appearance->GetSpecular();
 
-    pImmediateContext->PSSetShaderResources(0, 1, &appearance->GetTexture());
+    if (name == "GridMesh")
+    {
+        //pImmediateContext->PSSetShaderResources(0, 1, &appearance->GetTexture());
+    }
+    else
+        pImmediateContext->PSSetShaderResources(0, 1, &appearance->GetTexture());
 
     pImmediateContext->IASetVertexBuffers(0, 1, &appearance->GetMesh().VertexBuffer, &appearance->GetMesh().VBStride, &appearance->GetMesh().VBOffset);
     pImmediateContext->IASetIndexBuffer(appearance->GetMesh().IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-    /*XMMATRIX posMatrix = XMMatrixTranslation(tempPos.x, tempPos.y, tempPos.z);
-    XMMATRIX rotMatrix = XMMatrixRotationX(tempRot.x) * XMMatrixRotationY(tempRot.y) * XMMatrixRotationZ(tempRot.z);
-    XMMATRIX scaleMatrix = XMMatrixScaling(tempScale.x, tempScale.y, tempScale.z);
-    XMMATRIX temp = XMMatrixMultiply(XMMatrixMultiply(rotMatrix, scaleMatrix), posMatrix);
-    XMFLOAT4X4 tempWorld;
-    XMStoreFloat4x4(&tempWorld, temp);*/
     cb.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&worldMatrix));
 
     pImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
@@ -101,7 +108,34 @@ void WorldObject::UpdateRotationalSpeed(float deltaTime)
 
 void WorldObject::UpdateRotationalOrientation(float deltaTime)
 {
-    XMMATRIX rot = XMMatrixRotationX(transform->GetRot().x);
+    XMVECTOR q = XMQuaternionRotationMatrix(XMLoadFloat4x4(&worldMatrix));
+
+    XMFLOAT4 qf4;
+    XMStoreFloat4(&qf4, q);
+
+    Quaternion qMine;
+    qMine.i = qf4.x;
+    qMine.j = qf4.y;
+    qMine.k = qf4.z;
+    qMine.r = qf4.w;
+
+    //qMine.rotateByVector(Vector3D(0, 0, 0));
+
+    qMine.addScaledVector(angVelocity, deltaTime);
+    qMine.normalise();
+
+    XMMATRIX mOut;
+    CalculateTransformMatrixRowMajor(mOut, transform->GetPos(), qMine);
+
+    XMStoreFloat4x4(&worldMatrix, mOut);
+
+    XMVECTOR outTrans, outScale, outQ;
+    XMMatrixDecompose(&outScale, &outQ, &outTrans, XMLoadFloat4x4(&worldMatrix));
+    XMFLOAT4 rot;
+    XMStoreFloat4(&rot, outQ);
+    transform->SetRot({ rot.x, rot.y, rot.z });
+
+    /*XMMATRIX rot = XMMatrixRotationX(transform->GetRot().x);
     rot *= XMMatrixRotationY(transform->GetRot().y);
     rot *= XMMatrixRotationZ(transform->GetRot().z);
 
@@ -115,16 +149,16 @@ void WorldObject::UpdateRotationalOrientation(float deltaTime)
     myQuat.addScaledVector(angVelocity, deltaTime);
     myQuat.normalise();
 
-    /*quat->i = transform->GetRot().x;
+    quat->i = transform->GetRot().x;
     quat->j = transform->GetRot().y;
     quat->k = transform->GetRot().z;
 
     quat->addScaledVector(angVelocity, deltaTime);
-    quat->normalise();*/
+    quat->normalise();
 
     CalculateTransformMatrixRowMajor(XMLoadFloat4x4(&worldMatrix), {0,0,0}, myQuat);
 
-    /*Vector3D temp = { myQuat.i, myQuat.j, myQuat.k };
+    Vector3D temp = { myQuat.i, myQuat.j, myQuat.k };
     transform->SetRot( temp );*/
 
     debug->DebugString("rotY:" + std::to_string(transform->GetRot().y) + "  ");
