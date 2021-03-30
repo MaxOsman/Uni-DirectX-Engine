@@ -75,12 +75,12 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     orbitAngle = 0.0f;
     playerSpeed = 10.0f;
 
-    camera = new Camera(_WindowWidth, _WindowHeight,
+    _camera = new Camera(_WindowWidth, _WindowHeight,
         { 0.0f, 20.0f, 15.0f },
         { 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f });
-    light = new Light();
-    debug = new Debug();
+    _light = new Light();
+    _debug = new Debug();
 
     //Load games assets from JSON file
     LoadObjectData();
@@ -106,13 +106,13 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
         }
     }
 
-    particleManager = new ParticleManager(10);
+    _particleManager = new ParticleManager(10);
 
     /*FireParticleSystem* fireSystem = new FireParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
     fireSystem->Initialise();
     particleManager->AddSystem(fireSystem);*/
 
-    _objects[PHYSOBJECT].CalcTorque({10,0,0});
+    //_objects[PHYSOBJECT].CalcTorque({1,1,0});
       
 	return S_OK;
 }
@@ -138,7 +138,7 @@ vector<float>* Application::LoadHeightMap()
     // Copy the array data into a float array and scale it. mHeightmap.resize(heightmapHeight * heightmapWidth, 0);
     for (UINT i = 0; i < GRID_WIDTH * GRID_DEPTH; ++i)
     {
-        tempHeights->push_back((in[i] / 255.0f) * heightScale);
+        tempHeights->push_back((in[i] / 255.0f) * HEIGHT_SCALE);
     }
 
     return tempHeights;
@@ -174,9 +174,9 @@ void Application::LoadObjectData()
 
     vector<float>* heights = LoadHeightMap();
 
-    for (size_t i = 0; i < GRID_WIDTH; ++i)
+    for (unsigned int i = 0; i < GRID_WIDTH; ++i)
     {
-        for (size_t j = 0; j < GRID_DEPTH; ++j)
+        for (unsigned int j = 0; j < GRID_DEPTH; ++j)
         {
             verts.push_back({ 1.0f * i - GRID_WIDTH / 2, heights->at(j + i * GRID_WIDTH), 1.0f * j - GRID_DEPTH / 2 });
         }
@@ -187,16 +187,59 @@ void Application::LoadObjectData()
     texCoords.push_back({ 0.0f, 1.0f });
     texCoords.push_back({ 1.0f, 1.0f });
 
-    for (size_t i = 0; i < GRID_WIDTH-1; ++i)
+    for (unsigned int i = 0; i < GRID_WIDTH-1; ++i)
     {
-        for (size_t j = 0; j < GRID_DEPTH-1; ++j)
-        {
+        for (unsigned int j = 0; j < GRID_DEPTH-1; ++j)
+        {         
             vertIndices.push_back(i * GRID_WIDTH + j);
             vertIndices.push_back(i * GRID_WIDTH + j + 1);
             vertIndices.push_back((i + 1) * GRID_WIDTH + j);
             vertIndices.push_back((i + 1) * GRID_WIDTH + j);
             vertIndices.push_back(i * GRID_WIDTH + j + 1);
             vertIndices.push_back((i + 1) * GRID_WIDTH + j + 1);
+
+            /*XMFLOAT3 a = verts[i * GRID_WIDTH + j];
+            XMFLOAT3 b = verts[i * GRID_WIDTH + j + 1];
+            XMFLOAT3 c = verts[(i + 1) * GRID_WIDTH + j];
+            XMFLOAT3 d = verts[(i + 1) * GRID_WIDTH + j + 1];
+
+            //AB cross AC
+            Vector3D cross = { b.x - a.x, b.y - a.y, b.z - a.z };
+            cross.cross_product({ c.x - a.x, c.y - a.y, c.z - a.z });
+            cross = cross.normalization();
+            normals.push_back({ cross.x, cross.y, cross.z });
+            //BA cross BC
+            cross = { a.x - b.x, a.y - b.y, a.z - b.z };
+            cross.cross_product({ c.x - b.x, c.y - b.y, c.z - b.z });
+            cross = cross.normalization();
+            normals.push_back({ cross.x, cross.y, cross.z });
+            //CA cross CB
+            cross = { a.x - c.x, a.y - c.y, a.z - c.z };
+            cross.cross_product({ b.x - c.x, b.y - c.y, b.z - c.z });
+            cross = cross.normalization();
+            normals.push_back({ cross.x, cross.y, cross.z });
+            //CB cross CD
+            cross = { b.x - c.x, b.y - c.y, b.z - c.z };
+            cross.cross_product({ d.x - c.x, d.y - c.y, d.z - c.z });
+            cross = cross.normalization();
+            normals.push_back({ cross.x, cross.y, cross.z });
+            //BC cross BD
+            cross = { c.x - b.x, c.y - b.y, c.z - b.z };
+            cross.cross_product({ d.x - b.x, d.y - b.y, d.z - b.z });
+            cross = cross.normalization();
+            normals.push_back({ cross.x, cross.y, cross.z });
+            //DB cross DC
+            cross = { b.x - d.x, b.y - d.y, b.z - d.z };
+            cross.cross_product({ c.x - d.x, c.y - d.y, c.z - d.z });
+            cross = cross.normalization();
+            normals.push_back({ cross.x, cross.y, cross.z });
+
+            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j));
+            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 1);
+            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 2);
+            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 3);
+            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 4);
+            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 5);*/
 
             normalIndices.push_back(0);
             normalIndices.push_back(0);
@@ -231,6 +274,21 @@ void Application::LoadObjectData()
         _textures.push_back({ tempTex, texPaths.at(i) });
     }
 
+    // Terrain indices
+    for (int i = 0; i < _textures.size(); ++i)
+    {
+        if (_textures[i].name == "DirtLight")
+            terrainTexIndices[0] = i;
+        else if (_textures[i].name == "Grass")
+            terrainTexIndices[1] = i;
+        else if (_textures[i].name == "Stone2")
+            terrainTexIndices[2] = i;
+        else if (_textures[i].name == "Snow")
+            terrainTexIndices[3] = i;
+        else if (_textures[i].name == "Blend")
+            terrainTexIndices[4] = i;
+    }
+
     //Materials
     for (size_t i = 0; i < materials.size(); ++i)
     {
@@ -251,11 +309,6 @@ void Application::LoadObjectData()
         int meshIndex = 0;
         for (int j = 0; j < _meshes.size(); ++j)
         {
-            /*if (meshName == "BasicCube")
-            {
-                meshIndex = j;
-                break;
-            }*/
             if (meshName == _meshes[j].name)
             {
                 meshIndex = j;
@@ -304,14 +357,13 @@ void Application::LoadObjectData()
             bill = true;
 
         //Finalise
-        Transform* tempTrans = new Transform( posMatrix, rotMatrix, scaleMatrix );
+        Transform* tempTrans = new Transform(   posMatrix, rotMatrix, scaleMatrix, bill );
         Appearance* tempApp = new Appearance(   _meshes[meshIndex].meshData,
                                                 _textures[texIndex].texture,
                                                 _materials[matIndex].diffuseMaterial,
                                                 _materials[matIndex].ambientMaterial,
                                                 _materials[matIndex].specularMaterial,
-                                                trans,
-                                                bill);
+                                                trans, meshName);
         bool terrain;
         float mass;
         if (i == PLAYEROBJECT || i == PHYSOBJECT || i == 16)
@@ -320,52 +372,75 @@ void Application::LoadObjectData()
             terrain = true;
 
         if (i == PLAYEROBJECT)
-            mass = 8.0f;
+            mass = 10.0f;
         else
-            mass = 20.0f;
+            mass = 200.0f;
 
-        _objects.push_back({ tempTrans, tempApp, { 0.0f, 0.0f, 0.0f }, mass, terrain, meshName });
-
+        _objects.push_back({ tempTrans, tempApp, { 0.0f, 0.0f, 0.0f }, mass, terrain });
     }
 }
 
-HRESULT Application::InitShadersAndInputLayout(WCHAR* fileName)
+HRESULT Application::InitShadersAndInputLayout()
 {
 	HRESULT hr;
 
     // Compile the vertex shader
     ID3DBlob* pVSBlob = nullptr;
-    hr = CompileShaderFromFile(fileName, "VS", "vs_4_0", &pVSBlob);
-
+    hr = CompileShaderFromFile(L"DX11 Framework.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
         return hr;
     }
-
 	// Create the vertex shader
 	hr = _pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &_pVertexShader);
-
 	if (FAILED(hr))
 	{	
 		pVSBlob->Release();
         return hr;
 	}
 
-	// Compile the pixel shader
-	ID3DBlob* pPSBlob = nullptr;
-    hr = CompileShaderFromFile(fileName, "PS", "ps_4_0", &pPSBlob);
-
+    // Compile the terrain vertex shader
+    ID3DBlob* pVSTBlob = nullptr;
+    hr = CompileShaderFromFile(L"DX11 Framework Terrain.fx", "VS", "vs_4_0", &pVSTBlob);
     if (FAILED(hr))
     {
         MessageBox(nullptr, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
         return hr;
     }
+    // Create the terrain vertex shader
+    hr = _pd3dDevice->CreateVertexShader(pVSTBlob->GetBufferPointer(), pVSTBlob->GetBufferSize(), nullptr, &_pVertexShaderTerrain);
+    if (FAILED(hr))
+    {
+        pVSTBlob->Release();
+        return hr;
+    }
 
+	// Compile the pixel shader
+	ID3DBlob* pPSBlob = nullptr;
+    hr = CompileShaderFromFile(L"DX11 Framework.fx", "PS", "ps_4_0", &pPSBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
 	// Create the pixel shader
 	hr = _pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &_pPixelShader);
 	pPSBlob->Release();
+    if (FAILED(hr))
+        return hr;
 
+    // Compile the terrain pixel shader
+    ID3DBlob* pPSTBlob = nullptr;
+    hr = CompileShaderFromFile(L"DX11 Framework Terrain.fx", "PS", "ps_4_0", &pPSTBlob);
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+        return hr;
+    }
+    // Create the terrain pixel shader
+    hr = _pd3dDevice->CreatePixelShader(pPSTBlob->GetBufferPointer(), pPSTBlob->GetBufferSize(), nullptr, &_pPixelShaderTerrain);
+    pPSTBlob->Release();
     if (FAILED(hr))
         return hr;
 
@@ -382,7 +457,6 @@ HRESULT Application::InitShadersAndInputLayout(WCHAR* fileName)
     // Create the input layout
 	hr = _pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &_pVertexLayout);
 	pVSBlob->Release();
-    
 	if (FAILED(hr))
         return hr;
 
@@ -559,23 +633,7 @@ HRESULT Application::InitDevice()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    InitShadersAndInputLayout(L"DX11 Framework Terrain.fx");
-    _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
-
-    //Get right textures for the shader
-    for (int i = 0; i < _textures.size(); ++i)
-    {
-        if (_textures[i].name == "DirtLight")
-            _pImmediateContext->PSSetShaderResources(0, 1, &_textures[i].texture);
-        else if (_textures[i].name == "Grass")
-            _pImmediateContext->PSSetShaderResources(1, 1, &_textures[i].texture);
-        else if (_textures[i].name == "Stone2")
-            _pImmediateContext->PSSetShaderResources(2, 1, &_textures[i].texture);
-        else if (_textures[i].name == "Snow")
-            _pImmediateContext->PSSetShaderResources(3, 1, &_textures[i].texture);
-    }
-
-	InitShadersAndInputLayout(L"DX11 Framework.fx");
+	InitShadersAndInputLayout();
     _pd3dDevice->CreateSamplerState(&sampDesc, &_pSamplerLinear);
 
     // Set index buffer
@@ -644,15 +702,15 @@ bool Application::HandleKeyboard(MSG msg)
             switch (cameraMode)
             {
             case CAMERA_ANGLED:
-                camera->ChangePos({ 0.0f+_objects[PLAYEROBJECT].GetPos().x, 20.0f+_objects[PLAYEROBJECT].GetPos().y, 0.0f+_objects[PLAYEROBJECT].GetPos().z },
-                    _objects[PLAYEROBJECT].GetPos(),
+                _camera->ChangePos({ 0.0f+_objects[PLAYEROBJECT].GetTransform()->GetPos().x, 20.0f+_objects[PLAYEROBJECT].GetTransform()->GetPos().y, 0.0f+_objects[PLAYEROBJECT].GetTransform()->GetPos().z },
+                    _objects[PLAYEROBJECT].GetTransform()->GetPos(),
                     { 0.0f, 0.0f, -1.0f });
                 cameraMode = CAMERA_TOPDOWN;
                 return true;
 
             case CAMERA_TOPDOWN:
                 cameraMode = CAMERA_FIRST;
-                camera->ChangePos(_objects[PLAYEROBJECT].GetPos(),
+                _camera->ChangePos(_objects[PLAYEROBJECT].GetTransform()->GetPos(),
                     { 0.0f, 1.0f, 0.0f },
                     { 0.0f, 1.0f, 0.0f });
                 ConfineCursor();
@@ -663,7 +721,7 @@ bool Application::HandleKeyboard(MSG msg)
                 return true;
 
             case CAMERA_THIRD:
-                camera->ChangePos({ 0.0f, 20.0f, 15.0f },
+                _camera->ChangePos({ 0.0f, 20.0f, 15.0f },
                     { 0.0f, 0.0f, 0.0f },
                     { 0.0f, 1.0f, 0.0f });
                 cameraMode = CAMERA_ANGLED;
@@ -689,19 +747,19 @@ void Application::HandlePerFrameInput(float deltaTime)
     _objects[PLAYEROBJECT].GetParticle()->SetThrust({0.0f, 0.0f, 0.0f});
     if (GetAsyncKeyState('W'))
     {
-        _objects[PLAYEROBJECT].PlayerMove({ 0.0f, 0.0f, playerSpeed * deltaTime }, camera);
+        _objects[PLAYEROBJECT].PlayerMove({ 0.0f, 0.0f, playerSpeed * deltaTime }, _camera->GetYaw());
     }
     if (GetAsyncKeyState('A'))
     {
-        _objects[PLAYEROBJECT].PlayerMove({ -playerSpeed * deltaTime, 0.0f, 0.0f }, camera);
+        _objects[PLAYEROBJECT].PlayerMove({ -playerSpeed * deltaTime, 0.0f, 0.0f }, _camera->GetYaw());
     }
     if (GetAsyncKeyState('S'))
     {
-        _objects[PLAYEROBJECT].PlayerMove({ 0.0f, 0.0f, -playerSpeed * deltaTime }, camera);
+        _objects[PLAYEROBJECT].PlayerMove({ 0.0f, 0.0f, -playerSpeed * deltaTime }, _camera->GetYaw());
     }
     if (GetAsyncKeyState('D'))
     {
-        _objects[PLAYEROBJECT].PlayerMove({ playerSpeed * deltaTime, 0.0f, 0.0f }, camera);
+        _objects[PLAYEROBJECT].PlayerMove({ playerSpeed * deltaTime, 0.0f, 0.0f }, _camera->GetYaw());
     }
     /*if (GetAsyncKeyState('Q'))
     {
@@ -713,27 +771,27 @@ void Application::HandlePerFrameInput(float deltaTime)
     }*/
     if (GetAsyncKeyState(VK_ADD))
     {
-        camera->AddR(-2.0f * deltaTime);
+        _camera->AddR(-2.0f * deltaTime);
     }
     if (GetAsyncKeyState(VK_SUBTRACT))
     {
-        camera->AddR(2.0f * deltaTime);
+        _camera->AddR(2.0f * deltaTime);
     }
     if (GetAsyncKeyState(VK_UP))
     {
-        light->AddDirection({ 0.0f, 0.0f, -2.0f * deltaTime });
+        _light->AddDirection({ 0.0f, 0.0f, -2.0f * deltaTime });
     }
     if (GetAsyncKeyState(VK_DOWN))
     {
-        light->AddDirection({ 0.0f, 0.0f, 2.0f * deltaTime });
+        _light->AddDirection({ 0.0f, 0.0f, 2.0f * deltaTime });
     }
     if (GetAsyncKeyState(VK_LEFT))
     {
-        light->AddDirection({ 2.0f * deltaTime, 0.0f, 0.0f });
+        _light->AddDirection({ 2.0f * deltaTime, 0.0f, 0.0f });
     }
     if (GetAsyncKeyState(VK_RIGHT))
     {
-        light->AddDirection({ -2.0f * deltaTime, 0.0f, 0.0f });
+        _light->AddDirection({ -2.0f * deltaTime, 0.0f, 0.0f });
     }
 
     if (GetAsyncKeyState(VK_SHIFT))
@@ -767,7 +825,9 @@ void Application::Cleanup()
     if (_pConstantBuffer) _pConstantBuffer->Release();
     if (_pVertexLayout) _pVertexLayout->Release();
     if (_pVertexShader) _pVertexShader->Release();
+    if (_pVertexShaderTerrain) _pVertexShaderTerrain->Release();
     if (_pPixelShader) _pPixelShader->Release();
+    if (_pPixelShaderTerrain) _pPixelShaderTerrain->Release();
     if (_pRenderTargetView) _pRenderTargetView->Release();
     if (_pSwapChain) _pSwapChain->Release();
     if (_pImmediateContext) _pImmediateContext->Release();
@@ -792,69 +852,19 @@ void Application::CollisionDetection(int i, float deltaTime)
                 if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_SPHERE)
                 {
                     //Both spheres
-                    if (_objects[i].GetParticle()->SphereCollision(_objects[j].GetPos(), _objects[j].GetParticle()->GetRadius()))
+                    CollisionData coll = _objects[i].GetParticle()->SphereCollision(_objects[j].GetTransform()->GetPos(), _objects[j].GetParticle()->GetRadius());
+                    if (coll.isCollided)
                     {
-                        _objects[i].GetParticle()->SetVelocity({ 0,0,0 });
-                        _objects[j].GetParticle()->SetVelocity({ 0,0,0 });
+                        CollisionResponseSphere(coll.difference, i, j, deltaTime);
                     }
                 }
                 else if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_AABB)
                 {
                     //Sphere and AABB, i is sphere
-                    CollisionData coll = _objects[i].GetParticle()->SphereAABBCollision(_objects[i].GetPos(), _objects[i].GetParticle()->GetRadius(), _objects[j].GetParticle()->GetCorner() + _objects[j].GetPos(), _objects[j].GetParticle()->GetWidths());
+                    CollisionData coll = _objects[i].GetParticle()->SphereAABBCollision(_objects[i].GetTransform()->GetPos(), _objects[i].GetParticle()->GetRadius(), _objects[j].GetParticle()->GetCorner() + _objects[j].GetTransform()->GetPos(), _objects[j].GetParticle()->GetWidths());
                     if (coll.isCollided)
                     {
-                        Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetPos() - _objects[i].GetPos());
-                        float penetration;
-                        float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
-                        float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
-                        switch (dir)
-                        {
-                        case FORWARD:
-                        case BACK:
-                            _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
-                            penetration = _objects[i].GetParticle()->GetRadius() - abs(coll.difference.x);
-                            if (dir == FORWARD)
-                            {
-                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x + penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x - penetration * massFormulaJ);
-                            }
-                            else
-                            {
-                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x - penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x + penetration * massFormulaJ);
-                            }
-                            break;
-                        case UP:
-                        case DOWN:
-                            _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
-                            penetration = _objects[i].GetParticle()->GetRadius() - abs(coll.difference.y);
-                            if (dir == UP)
-                            {
-                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y + penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y - penetration * massFormulaJ);
-                            }
-                            else
-                            {
-                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y - penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y + penetration * massFormulaJ);
-                            }
-                            break;
-                        case LEFT:
-                        case RIGHT:
-                            _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
-                            penetration = _objects[i].GetParticle()->GetRadius() - abs(coll.difference.z);
-                            if (dir == LEFT)
-                            {
-                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z + penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z - penetration * massFormulaJ);
-                            }
-                            else
-                            {
-                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z - penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z + penetration * massFormulaJ);
-                            }
-                        }
+                        CollisionResponseAABBSphere(coll.difference, i, j, i, -1.0f);
                     }
                 }
             }
@@ -870,86 +880,172 @@ void Application::CollisionDetection(int i, float deltaTime)
                 if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_SPHERE)
                 {
                     // Sphere and AABB, i is AABB
-                    CollisionData coll = _objects[i].GetParticle()->SphereAABBCollision(_objects[j].GetPos(), _objects[j].GetParticle()->GetRadius(), _objects[i].GetParticle()->GetCorner() + _objects[i].GetPos(), _objects[i].GetParticle()->GetWidths());
+                    CollisionData coll = _objects[i].GetParticle()->SphereAABBCollision(_objects[j].GetTransform()->GetPos(), _objects[j].GetParticle()->GetRadius(), _objects[i].GetParticle()->GetCorner() + _objects[i].GetTransform()->GetPos(), _objects[i].GetParticle()->GetWidths());
                     if (coll.isCollided)
                     {
-                        Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetPos() - _objects[i].GetPos());
-                        float penetration;
-                        float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
-                        float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
-                        switch (dir)
-                        {
-                        case FORWARD:
-                        case BACK:
-                            _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
-                            penetration = _objects[j].GetParticle()->GetRadius() - abs(coll.difference.x);
-                            if (dir == FORWARD)
-                            {
-                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x - penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x + penetration * massFormulaJ);
-                            }     
-                            else
-                            {
-                                _objects[i].GetTransform()->SetPosX(_objects[i].GetPos().x + penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosX(_objects[j].GetPos().x - penetration * massFormulaJ);
-                            }                               
-                            break;
-                        case UP:
-                        case DOWN:
-                            _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
-                            penetration = _objects[j].GetParticle()->GetRadius() - abs(coll.difference.y);
-                            if (dir == UP)
-                            {
-                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y - penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y + penetration * massFormulaJ);
-                            }         
-                            else
-                            {
-                                _objects[i].GetTransform()->SetPosY(_objects[i].GetPos().y + penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosY(_objects[j].GetPos().y - penetration * massFormulaJ);
-                            }
-                            break;
-                        case LEFT:
-                        case RIGHT:
-                            _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
-                            penetration = _objects[j].GetParticle()->GetRadius() - abs(coll.difference.z);
-                            if (dir == LEFT)
-                            {
-                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z - penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z + penetration * massFormulaJ);
-                            }
-                            else
-                            {
-                                _objects[i].GetTransform()->SetPosZ(_objects[i].GetPos().z + penetration * massFormulaI);
-                                _objects[j].GetTransform()->SetPosZ(_objects[j].GetPos().z - penetration * massFormulaJ);
-                            }
-                        }
+                        CollisionResponseAABBSphere(coll.difference, i, j, j, 1.0f);
                     }
                 }
                 else if (_objects[j].GetParticle()->GetCollisionType() == COLLISION_AABB)
                 {
                     // Both AABBs
-                    if (_objects[i].GetParticle()->AABBCollision(_objects[j].GetParticle()->GetCorner() + _objects[j].GetPos(), _objects[j].GetParticle()->GetWidths()))
+                    CollisionData coll = _objects[i].GetParticle()->AABBCollision(_objects[i].GetParticle()->GetCorner() + _objects[i].GetTransform()->GetPos(), _objects[i].GetParticle()->GetWidths(), _objects[j].GetParticle()->GetCorner() + _objects[j].GetTransform()->GetPos(), _objects[j].GetParticle()->GetWidths());
+                    if (coll.isCollided)
                     {
-                        Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetPos() - _objects[i].GetPos());
-                        _objects[i].SetPos(_objects[i].GetPos() + _objects[i].GetParticle()->GetVelocity() * -1.0f * deltaTime);
-                        switch (dir)
-                        {
-                        case FORWARD:
-                        case BACK:
-                            _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
-                            break;
-                        case UP:
-                        case DOWN:
-                            _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
-                            break;
-                        case LEFT:
-                        case RIGHT:
-                            _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
-                        }
+                        CollisionResponseAABB(coll.difference, i, j);
                     }
                 }
             }
+        }
+    }
+}
+
+void Application::CollisionResponseSphere(Vector3D penetration, int i, int j, float deltaTime)
+{
+    // stackoverflow.com/questions/3232318/sphere-sphere-collision-detection-reaction
+    // research.ncl.ac.uk/game/mastersdegree/gametechnologies/physicstutorials/5collisionresponse/Physics%20-%20Collision%20Response.pdf
+
+    float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+    float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+
+    Vector3D momentumI = _objects[i].GetParticle()->GetVelocity() * _objects[i].GetParticle()->GetMass();
+    Vector3D momentumJ = _objects[j].GetParticle()->GetVelocity() * _objects[j].GetParticle()->GetMass();
+    float restitution = 0.6f;   //Temp!!!
+    //float j = (-(1.0f + restitution) * impulseForce) / (totalMass + angularEffect);
+
+    Vector3D pene = penetration.normalization() * (_objects[i].GetParticle()->GetRadius() + _objects[j].GetParticle()->GetRadius()) - penetration;
+
+    Vector3D newI, newJ;
+
+    newI = _objects[i].GetParticle()->GetVelocity();
+    newI += ProjectUOnV(_objects[j].GetParticle()->GetVelocity(), _objects[j].GetTransform()->GetPos() - _objects[i].GetTransform()->GetPos());
+    newI -= ProjectUOnV(_objects[i].GetParticle()->GetVelocity(), _objects[i].GetTransform()->GetPos() - _objects[j].GetTransform()->GetPos());
+    newI = newI.normalization();
+
+    newJ = _objects[j].GetParticle()->GetVelocity();
+    newJ += ProjectUOnV(_objects[i].GetParticle()->GetVelocity(), _objects[j].GetTransform()->GetPos() - _objects[i].GetTransform()->GetPos());
+    newJ -= ProjectUOnV(_objects[j].GetParticle()->GetVelocity(), _objects[i].GetTransform()->GetPos() - _objects[j].GetTransform()->GetPos());
+    newJ = newJ.normalization();
+
+    /*_objects[i].GetParticle()->SetVelocity(newI);
+    _objects[j].GetParticle()->SetVelocity(newJ);*/
+
+    _objects[i].GetParticle()->AddImpulseAsForce(momentumI / deltaTime);
+    _objects[j].GetParticle()->AddImpulseAsForce(momentumJ / deltaTime);
+
+    _objects[i].GetTransform()->SetPos(_objects[i].GetTransform()->GetPos() - pene * massFormulaI);
+    _objects[j].GetTransform()->SetPos(_objects[j].GetTransform()->GetPos() + pene * massFormulaJ);
+}
+
+Vector3D Application::ProjectUOnV(Vector3D u, Vector3D v)
+{
+     return v * u.dot_product(v) / v.dot_product(v);
+}
+
+void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j, int sphereIndex, float multiply)
+{
+    float pene;
+    Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetTransform()->GetPos() - _objects[i].GetTransform()->GetPos());
+    float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+    float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+    //Vector3D momentumI = _objects[i].GetParticle()->GetVelocity() * _objects[i].GetParticle()->GetMass();
+    //Vector3D momentumJ = _objects[j].GetParticle()->GetVelocity() * _objects[j].GetParticle()->GetMass();
+    switch (dir)
+    {
+    case FORWARD:
+    case BACK:
+        _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
+        pene = (_objects[sphereIndex].GetParticle()->GetRadius() - abs(penetration.x)) * multiply;
+        if (dir == FORWARD)
+        {
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - pene * massFormulaI);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x + pene * massFormulaJ);
+        }
+        else
+        {
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x + pene * massFormulaI);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x - pene * massFormulaJ);
+        }
+        break;
+    case UP:
+    case DOWN:
+        _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
+        pene = (_objects[sphereIndex].GetParticle()->GetRadius() - abs(penetration.y)) * multiply;
+        if (dir == UP)
+        {
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - pene * massFormulaI);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y + pene * massFormulaJ);
+        }
+        else
+        {
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y + pene * massFormulaI);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y - pene * massFormulaJ);
+        }
+        break;
+    case LEFT:
+    case RIGHT:
+        _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
+        pene = (_objects[sphereIndex].GetParticle()->GetRadius() - abs(penetration.z)) * multiply;
+        if (dir == LEFT)
+        {
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - pene * massFormulaI);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z + pene * massFormulaJ);
+        }
+        else
+        {
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z + pene * massFormulaI);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z - pene * massFormulaJ);
+        }
+    }
+}
+
+void Application::CollisionResponseAABB(Vector3D penetration, int i, int j)
+{
+    Directions dir = _objects[j].GetParticle()->VectorDirection(_objects[j].GetTransform()->GetPos() - _objects[i].GetTransform()->GetPos());
+    float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+    float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
+    switch (dir)
+    {
+    case FORWARD:
+    case BACK:
+        _objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
+        if (dir == FORWARD)
+        {
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - penetration.x * massFormulaI);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x + penetration.x * massFormulaJ);
+        }
+        else
+        {
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x + penetration.x * massFormulaI);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x - penetration.x * massFormulaJ);
+        }
+        break;
+    case UP:
+    case DOWN:
+        _objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
+        if (dir == UP)
+        {
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - penetration.y * massFormulaI);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y + penetration.y * massFormulaJ);
+        }
+        else
+        {
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y + penetration.y * massFormulaI);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y - penetration.y * massFormulaJ);
+        }
+        break;
+    case LEFT:
+    case RIGHT:
+        _objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
+        if (dir == LEFT)
+        {
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - penetration.z * massFormulaI);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z + penetration.z * massFormulaJ);
+        }
+        else
+        {
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z + penetration.z * massFormulaI);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z - penetration.z * massFormulaJ);
         }
     }
 }
@@ -978,31 +1074,41 @@ void Application::Update()
 
         //Once per frame
 
+        //Billboard angle
+        float yaw = XM_PI;
+        float pitch = 0;
+        if (cameraMode == CAMERA_FIRST || cameraMode == CAMERA_THIRD)
+        {
+            yaw = _camera->GetYaw();
+            pitch = _camera->GetPitch();
+        }     
+
         for (unsigned int i = 0; i < _objects.size(); ++i)
         {
             if(_objects[i].GetTerrain())
-                _objects[i].UpdateWorldMatrix();
+                _objects[i].GetTransform()->Update(yaw, pitch);
             else
             {
-                _objects[i].Update(deltaTime);
+                _objects[i].Update(deltaTime, yaw, pitch);
                 CollisionDetection(i, deltaTime);
             }          
         }
 
-        particleManager->Update(deltaTime);
-        camera->Update(cameraMode, _hWnd, _objects[PLAYEROBJECT].GetPos());
-        camera->SetMonkey(_objects[PLAYEROBJECT].GetPos());
-        XMFLOAT3 tempFloat = { camera->GetEye().x, camera->GetEye().y, camera->GetEye().z };
-        light->SetEye(tempFloat);
+        _particleManager->Update(deltaTime);
+        _camera->Update(cameraMode, _hWnd, _objects[PLAYEROBJECT].GetTransform()->GetPos());
+        _camera->SetMonkey(_objects[PLAYEROBJECT].GetTransform()->GetPos());
 
-        _objects[PLAYEROBJECT].SetRot({ camera->GetPitch(), camera->GetYaw(), 0.0f });
+        XMFLOAT3 tempFloat = { _camera->GetEye().x, _camera->GetEye().y, _camera->GetEye().z };
+        _light->SetEye(tempFloat);
 
-        //Sphere orbit
+        _objects[PLAYEROBJECT].GetTransform()->SetRot({ _camera->GetPitch(), _camera->GetYaw(), 0.0f });
+
+        // Sphere orbit
         //_objects[ORBITOBJECT].SetPos({ 15*cos(orbitAngle), 15.0f+cos(orbitAngle)*2, 15*sin(orbitAngle) });
         //_cb.gTime = deltaTime;
-        orbitAngle += 1.0f * deltaTime;
-        if (orbitAngle > XM_2PI)
-            orbitAngle = 0.0f;
+        //orbitAngle += 1.0f * deltaTime;
+        //if (orbitAngle > XM_2PI)
+        //    orbitAngle = 0.0f;
 
         //Hold controls
         HandlePerFrameInput(deltaTime);
@@ -1021,18 +1127,18 @@ void Application::Draw()
     _pImmediateContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     //Matrices
-    _cb.mView = XMMatrixTranspose(XMLoadFloat4x4(&camera->GetView()));
-    _cb.mProjection = XMMatrixTranspose(XMLoadFloat4x4(&camera->GetProjection()));
+    _cb.mView = XMMatrixTranspose(XMLoadFloat4x4(&_camera->GetView()));
+    _cb.mProjection = XMMatrixTranspose(XMLoadFloat4x4(&_camera->GetProjection()));
     _pImmediateContext->PSSetSamplers(0, 1, &_pSamplerLinear);
     
     //Light
-    light->Draw(&_cb);
+    _light->Draw(&_cb);
 
     //Shader
     _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
+    _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
     _pImmediateContext->VSSetConstantBuffers(0, 1, &_pConstantBuffer);
     _pImmediateContext->PSSetConstantBuffers(0, 1, &_pConstantBuffer);
-    _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0); 
 
     //Wireframe mode
     if (isSolid)
@@ -1040,48 +1146,37 @@ void Application::Draw()
     else
         _pImmediateContext->RSSetState(_wireFrame);
 
-    //Billboard angle
-    float yaw = XM_PI;
-    if (cameraMode == CAMERA_FIRST || cameraMode == CAMERA_THIRD)
-        yaw = camera->GetYaw();
-
     //Don't show the monkey in 1st person camera
     int start = 0;
     if (cameraMode == CAMERA_FIRST)
-        start = 1;
-    for (size_t i = start; i < _objects.size(); ++i)
+        ++start;
+    for (unsigned int i = start; i < _objects.size(); ++i)
     {
-        if (_objects[i].GetName() == "GridMesh")
+        if (_objects[i].GetAppearance()->GetName() == "GridMesh")
         {
-            InitShadersAndInputLayout(L"DX11 Framework Terrain.fx");
-            for (int i = 0; i < _textures.size(); ++i)
-            {
-                if (_textures[i].name == "DirtLight")
-                    _pImmediateContext->PSSetShaderResources(0, 1, &_textures[i].texture);
-                else if (_textures[i].name == "Grass")
-                    _pImmediateContext->PSSetShaderResources(1, 1, &_textures[i].texture);
-                else if (_textures[i].name == "Stone2")
-                    _pImmediateContext->PSSetShaderResources(2, 1, &_textures[i].texture);
-                else if (_textures[i].name == "Snow")
-                    _pImmediateContext->PSSetShaderResources(3, 1, &_textures[i].texture);
-            }
+            _pImmediateContext->VSSetShader(_pVertexShaderTerrain, nullptr, 0);
+            _pImmediateContext->PSSetShader(_pPixelShaderTerrain, nullptr, 0);
+
+            for (short i = 0; i < 5; ++i)
+                _pImmediateContext->PSSetShaderResources(i, 1, &_textures[terrainTexIndices[i]].texture);
 
             if (!_objects[i].GetTransparent())
-                _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
+                _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr);
 
-            InitShadersAndInputLayout(L"DX11 Framework.fx");
+            _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
+            _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
         }
         else
         {
             if (!_objects[i].GetTransparent())
-                _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr, yaw);
-        }                
+                _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr);
+        }
     }
-    particleManager->Render(_pImmediateContext, _cb, _pConstantBuffer);
-    for (size_t i = start; i < _objects.size(); ++i)
+    _particleManager->Render(_pImmediateContext, _cb, _pConstantBuffer);
+    for (unsigned int i = start; i < _objects.size(); ++i)
     {
         if (_objects[i].GetTransparent())
-            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, _transparency, yaw);
+            _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, _transparency);
     }
 
     _pSwapChain->Present(0, 0);

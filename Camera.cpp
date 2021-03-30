@@ -78,8 +78,7 @@ void Camera::Rotate(float dx, float dy)
 
 XMMATRIX Camera::GetMatrix1st()
 {
-    const XMVECTOR forwardBaseVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-    const XMVECTOR lookVector = XMVector3Transform(forwardBaseVector, XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f));
+    const XMVECTOR lookVector = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f));
 
     XMFLOAT3 tempMatrix = { _eye.x, _eye.y, _eye.z };
     const XMVECTOR camPosition = XMLoadFloat3(&tempMatrix);

@@ -123,29 +123,78 @@ void ParticleModel::UpdateGround()
         isGrounded = false;
 }
 
-bool ParticleModel::SphereCollision(Vector3D position, float radius)
+CollisionData ParticleModel::SphereCollision(Vector3D position, float radius)
 {
-    return (position.distance(transform->GetPos()) < (radius + boundSphereRadius));
+    if (position.distance(transform->GetPos()) < (radius + boundSphereRadius))
+    {
+        Vector3D distance = position - transform->GetPos();
+        return { true, VectorDirection(distance), distance };
+    }
+       
+    return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };
 }
 
-bool ParticleModel::AABBCollision(Vector3D corner2, Vector3D widths2)
+CollisionData ParticleModel::AABBCollision(Vector3D corner1, Vector3D widths1, Vector3D corner2, Vector3D widths2)
 {
-    // developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
-    /*if((corner.x + transform->GetPos().x <= corner2.x + widths2.x && corner.x + transform->GetPos().x + widths.x >= corner2.x) &&
-        (corner.y + transform->GetPos().y <= corner2.y + widths2.y && corner.y + transform->GetPos().y + widths.y >= corner2.y) &&
-        (corner.z + transform->GetPos().z <= corner2.z + widths2.z && corner.z + transform->GetPos().z + widths.z >= corner2.z))
-    return { true, FORWARD, distance };
-    
-    return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };*/
+    // gamedev.stackexchange.com/questions/129446/how-can-i-calculate-the-penetration-depth-between-two-colliding-3d-aabbs
 
-    return  (corner.x + transform->GetPos().x <= corner2.x + widths2.x && corner.x + transform->GetPos().x + widths.x >= corner2.x) &&
-            (corner.y + transform->GetPos().y <= corner2.y + widths2.y && corner.y + transform->GetPos().y + widths.y >= corner2.y) &&
-            (corner.z + transform->GetPos().z <= corner2.z + widths2.z && corner.z + transform->GetPos().z + widths.z >= corner2.z);
+    // Random large number
+    float* mtvDistance = new float(9000000.0f);
+    Vector3D* mtvAxis = new Vector3D();
+
+    if ((!TestAxis({ 1.0f, 0.0f, 0.0f }, corner1.x, widths1.x, corner2.x, widths2.x, mtvAxis, mtvDistance)) ||
+        (!TestAxis({ 0.0f, 1.0f, 0.0f }, corner1.y, widths1.y, corner2.y, widths2.y, mtvAxis, mtvDistance)) ||
+        (!TestAxis({ 0.0f, 0.0f, 1.0f }, corner1.z, widths1.z, corner2.z, widths2.z, mtvAxis, mtvDistance)))
+        return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };
+
+    float penetration = sqrt(*mtvDistance) * 1.001f;
+    Vector3D minimumTranslation = mtvAxis->normalization();
+
+    return { true, VectorDirection(minimumTranslation * penetration), minimumTranslation * penetration };
+}
+
+bool ParticleModel::TestAxis(Vector3D axis, float corner1, float width1, float corner2, float width2, Vector3D* mtvAxis, float* mtvDistance)
+{
+    // gamedev.stackexchange.com/questions/129446/how-can-i-calculate-the-penetration-depth-between-two-colliding-3d-aabbs
+
+    float axisLengthSquared = axis.dot_product(axis);
+
+    if (axisLengthSquared < 1.0e-8f)
+        return true;
+
+    float leftOverlap = corner2 + width2 - corner1;
+    float rightOverlap = corner1 + width1 - corner2;
+
+    if (leftOverlap <= 0.0f || rightOverlap <= 0.0f)
+        return false;
+
+    float overlap;
+    if (leftOverlap < rightOverlap)
+        overlap = leftOverlap;
+    else
+        overlap = -rightOverlap;
+
+    Vector3D sep = axis * (overlap / axisLengthSquared);
+
+    float sepLengthSquared = sep.dot_product(sep);
+    if (sepLengthSquared < *mtvDistance)
+    {
+        *mtvDistance = sepLengthSquared;
+        *mtvAxis = sep;
+    }
+
+    return true;
+}
+
+void ParticleModel::AddImpulseAsForce(Vector3D force)
+{
+
 }
 
 CollisionData ParticleModel::SphereAABBCollision(Vector3D position1, float radius1, Vector3D corner2, Vector3D widths2)
 {
     // developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+
     float x = max(corner2.x, min(position1.x, corner2.x + widths2.x));
     float y = max(corner2.y, min(position1.y, corner2.y + widths2.y));
     float z = max(corner2.z, min(position1.z, corner2.z + widths2.z));
@@ -161,6 +210,7 @@ CollisionData ParticleModel::SphereAABBCollision(Vector3D position1, float radiu
 Directions ParticleModel::VectorDirection(Vector3D target)
 {
     // learnopengl.com/In-Practice/2D-Game/Collisions/Collision-resolution
+
     Vector3D directions[6] = {  Vector3D(1.0f, 0.0f, 0.0f),
                                 Vector3D(-1.0f, 0.0f, 0.0f),
                                 Vector3D(0.0f, 1.0f, 0.0f),

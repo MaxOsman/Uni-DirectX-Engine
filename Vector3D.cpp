@@ -50,6 +50,11 @@ Vector3D& Vector3D::operator-=(const Vector3D& vec)
 	return *this;
 }
 
+Vector3D Vector3D::operator*(const Vector3D& vec)
+{
+	return Vector3D(x * vec.x, y * vec.y, z * vec.z);
+}
+
 Vector3D Vector3D::operator*(float value)
 {
 	return Vector3D(x * value, y * value, z * value);

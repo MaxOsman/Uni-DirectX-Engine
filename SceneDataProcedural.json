@@ -20,7 +20,8 @@
     "DirtLight",
     "Grass",
     "Stone2",
-    "Snow"
+    "Snow",
+    "Blend"
   ],
 
   "materials": [
@@ -52,7 +53,7 @@
 
     {
       "mesh": "GridMesh",
-      "tex": "Dirt",
+      "tex": "Crate",
       "mat": "Dull",
       "pos": [ 0.0, 0.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Structs.h"
-#include "Constants.h"
 #include "Transform.h"
+
+#define G 9.81f
 
 enum CollisionType
 {
@@ -67,10 +68,11 @@ public:
 	void UpdateGravity();
 	void UpdateGround();
 
-	bool SphereCollision(Vector3D position, float radius);
-	bool AABBCollision(Vector3D corner2, Vector3D widths2);
+	CollisionData SphereCollision(Vector3D position, float radius);
+	CollisionData AABBCollision(Vector3D corner1, Vector3D widths1, Vector3D corner2, Vector3D widths2);
 	CollisionData SphereAABBCollision(Vector3D position1, float radius1, Vector3D corner2, Vector3D widths2);
 	Directions VectorDirection(Vector3D target);
+	bool TestAxis(Vector3D axis, float corner1, float width1, float corner2, float width2, Vector3D* mtvAxis, float* mtvDistance);
 
 	void SetVelocityX(float x) { velocity.x = x; }
 	void SetVelocityY(float y) { velocity.y = y; }
@@ -102,4 +104,5 @@ public:
 	bool GetLaminarFlow() { return isLaminar; }
 	void SetTransform(Transform t) { transform = &t; }
 	Transform* GetTransform() { return transform; }
+	void AddImpulseAsForce(Vector3D force);
 };

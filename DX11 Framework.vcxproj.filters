@@ -82,10 +82,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="DX11 Framework.fx">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="SceneData.json" />
+    <None Include="SceneDataProcedural.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11 Framework.rc">
@@ -136,5 +134,13 @@
     <ClCompile Include="ParticleModel.cpp">
       <Filter>Source\Particles</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="DX11 Framework Terrain.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DX11 Framework.fx">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
