@@ -38,4 +38,5 @@ public:
 	void SetRot(Vector3D r) { orientation = EulerToQuat(r); }
 	void SetOri(Quaternion q) { orientation = q; }
 	void SetScale(Vector3D s) { scale = s; }
+	void SetBillboard(bool b) { billboard = b; }
 };

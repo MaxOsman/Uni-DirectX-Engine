@@ -20,16 +20,16 @@ void ParticleManager::Initialise()
 	
 }
 
-void ParticleManager::Update(float deltaTime)
+void ParticleManager::Update(float deltaTime, float yaw, float pitch)
 {
 	for (size_t i = 0; i < maxSystemCount; ++i)
 	{
 		if(particleSystems[i] != nullptr)
-			particleSystems[i]->Update(deltaTime);
+			particleSystems[i]->Update(deltaTime, yaw, pitch);
 	}
 }
 
-void ParticleManager::Render(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb, ID3D11Buffer* pConstantBuffer)
+void ParticleManager::Render(ID3D11DeviceContext* pImmediateContext, ConstantBuffer* cb, ID3D11Buffer* pConstantBuffer)
 {
 	for (size_t i = 0; i < maxSystemCount; ++i)
 	{
@@ -40,7 +40,7 @@ void ParticleManager::Render(ID3D11DeviceContext* pImmediateContext, ConstantBuf
 
 void ParticleManager::AddSystem(ParticleSystem* newSystem)
 {
-	for (size_t i = 0; i < maxSystemCount; i++)
+	for (size_t i = 0; i < maxSystemCount; ++i)
 	{
 		if (particleSystems[i] == nullptr)
 		{

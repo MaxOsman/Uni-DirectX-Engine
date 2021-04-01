@@ -99,7 +99,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
     int texIndex = 0;
     for (int i = 0; i < _textures.size(); ++i)
     {
-        if (_textures[i].name == "Particle")
+        if (_textures[i].name == "~Particle")
         {
             texIndex = i;
             break;
@@ -108,9 +108,37 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     _particleManager = new ParticleManager(10);
 
-    /*FireParticleSystem* fireSystem = new FireParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
+    FireParticleSystem* fireSystem = new FireParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
+    fireSystem->position = { 15, 0, 5 };
     fireSystem->Initialise();
-    particleManager->AddSystem(fireSystem);*/
+    _particleManager->AddSystem(fireSystem);
+
+    SmokeParticleSystem* smokeSystem = new SmokeParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
+    smokeSystem->position = { 15, 0, 5 };
+    smokeSystem->Initialise();
+    _particleManager->AddSystem(smokeSystem);
+
+    for (int i = 0; i < _meshes.size(); ++i)
+    {
+        if (_meshes[i].name == "Cube")
+        {
+            meshIndex = i;
+            break;
+        }
+    }
+    for (int i = 0; i < _textures.size(); ++i)
+    {
+        if (_textures[i].name == "Stone")
+        {
+            texIndex = i;
+            break;
+        }
+    }
+
+    CubeParticleSystem* cubeSystem = new CubeParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
+    cubeSystem->position = { -15, 0, 5 };
+    cubeSystem->Initialise();
+    _particleManager->AddSystem(cubeSystem);
 
     //_objects[PHYSOBJECT].CalcTorque({1,1,0});
       
@@ -329,14 +357,27 @@ void Application::LoadObjectData()
         }
 
         //Find correct material
-        string matName = objects.at(i)["mat"];
         int matIndex = 0;
-        for (int j = 0; j < _materials.size(); ++j)
+        if (texName == "Metal" || texName == "Stone")
         {
-            if (matName == _materials[j].name)
+            for (int j = 0; j < _materials.size(); ++j)
             {
-                matIndex = j;
-                break;
+                if (_materials[j].name == "Shiny")
+                {
+                    matIndex = j;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            for (int j = 0; j < _materials.size(); ++j)
+            {
+                if (_materials[j].name == "Dull")
+                {
+                    matIndex = j;
+                    break;
+                }
             }
         }
 
@@ -364,19 +405,18 @@ void Application::LoadObjectData()
                                                 _materials[matIndex].ambientMaterial,
                                                 _materials[matIndex].specularMaterial,
                                                 trans, meshName);
+
+        //Physics properties
         bool terrain;
         float mass;
-        if (i == PLAYEROBJECT || i == PHYSOBJECT || i == 16)
+        if (objects.at(i)["phys"])
             terrain = false;
         else
             terrain = true;
 
-        if (i == PLAYEROBJECT)
-            mass = 10.0f;
-        else
-            mass = 200.0f;
+        mass = objects.at(i)["mass"];
 
-        _objects.push_back({ tempTrans, tempApp, { 0.0f, 0.0f, 0.0f }, mass, terrain });
+        _objects.push_back({ tempTrans, tempApp, mass, terrain });
     }
 }
 
@@ -710,9 +750,6 @@ bool Application::HandleKeyboard(MSG msg)
 
             case CAMERA_TOPDOWN:
                 cameraMode = CAMERA_FIRST;
-                _camera->ChangePos(_objects[PLAYEROBJECT].GetTransform()->GetPos(),
-                    { 0.0f, 1.0f, 0.0f },
-                    { 0.0f, 1.0f, 0.0f });
                 ConfineCursor();
                 return true;
 
@@ -930,8 +967,8 @@ void Application::CollisionResponseSphere(Vector3D penetration, int i, int j, fl
     /*_objects[i].GetParticle()->SetVelocity(newI);
     _objects[j].GetParticle()->SetVelocity(newJ);*/
 
-    _objects[i].GetParticle()->AddImpulseAsForce(momentumI / deltaTime);
-    _objects[j].GetParticle()->AddImpulseAsForce(momentumJ / deltaTime);
+    //_objects[i].GetParticle()->AddImpulseAsForce(momentumI / deltaTime);
+    //_objects[j].GetParticle()->AddImpulseAsForce(momentumJ / deltaTime);
 
     _objects[i].GetTransform()->SetPos(_objects[i].GetTransform()->GetPos() - pene * massFormulaI);
     _objects[j].GetTransform()->SetPos(_objects[j].GetTransform()->GetPos() + pene * massFormulaJ);
@@ -1081,20 +1118,20 @@ void Application::Update()
         {
             yaw = _camera->GetYaw();
             pitch = _camera->GetPitch();
-        }     
+        }
 
         for (unsigned int i = 0; i < _objects.size(); ++i)
         {
             if(_objects[i].GetTerrain())
-                _objects[i].GetTransform()->Update(yaw, pitch);
+                _objects[i].GetTransform()->Update(yaw, 0.0f);
             else
             {
-                _objects[i].Update(deltaTime, yaw, pitch);
+                _objects[i].Update(deltaTime, yaw, 0.0f);
                 CollisionDetection(i, deltaTime);
             }          
         }
 
-        _particleManager->Update(deltaTime);
+        _particleManager->Update(deltaTime, yaw, pitch);
         _camera->Update(cameraMode, _hWnd, _objects[PLAYEROBJECT].GetTransform()->GetPos());
         _camera->SetMonkey(_objects[PLAYEROBJECT].GetTransform()->GetPos());
 
@@ -1160,7 +1197,7 @@ void Application::Draw()
             for (short i = 0; i < 5; ++i)
                 _pImmediateContext->PSSetShaderResources(i, 1, &_textures[terrainTexIndices[i]].texture);
 
-            if (!_objects[i].GetTransparent())
+            if (!_objects[i].GetAppearance()->GetTransparent())
                 _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr);
 
             _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
@@ -1168,14 +1205,14 @@ void Application::Draw()
         }
         else
         {
-            if (!_objects[i].GetTransparent())
+            if (!_objects[i].GetAppearance()->GetTransparent())
                 _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, nullptr);
         }
     }
-    _particleManager->Render(_pImmediateContext, _cb, _pConstantBuffer);
+    _particleManager->Render(_pImmediateContext, &_cb, _pConstantBuffer);
     for (unsigned int i = start; i < _objects.size(); ++i)
     {
-        if (_objects[i].GetTransparent())
+        if (_objects[i].GetAppearance()->GetTransparent())
             _objects[i].Render(_cb, _pImmediateContext, _pConstantBuffer, _transparency);
     }
 

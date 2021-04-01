@@ -15,18 +15,17 @@ private:
 
 	Debug* debug = new Debug();
 
-	float width = 2.0f;			//Temporary, only true for cube objects!
+	float width = 2.0f;
 	XMFLOAT3X3 inertiaTensor;
 	float angDamping = 1.0f;
-	Vector3D torque = {0,0,0};
-	Vector3D angAccel = {0,0,0};
-	Vector3D angVelocity = {0,0,0};
+	Vector3D torque = { 0, 0, 0 };
+	Vector3D angAccel = { 0, 0, 0 };
+	Vector3D angVelocity = { 0, 0, 0 };
 
 public:
-	WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain);
+	WorldObject(Transform* t, Appearance* ap, float m, bool staticTerrain);
 	~WorldObject();
 
-	bool GetTransparent() { return appearance->GetTransparent(); }
 	Transform* GetTransform() { return transform; }
 	ParticleModel* GetParticle() { return particleModel; }
 	Appearance* GetAppearance() { return appearance; }

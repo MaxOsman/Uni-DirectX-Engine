@@ -9,7 +9,7 @@ public:
 
 	int spawnLimit;
 	float spawnTimer = 0.0f;
-	float spawnRate = 1.0f;	//Per sec
+	float spawnRate = 1.0f;
 
 	//Particle** arrayParticles;
 	Particle* arrayParticles[50];
@@ -18,7 +18,6 @@ public:
 	std::string systemName;
 	Vector3D position;
 
-	//Emmitter* spawnEmmiter = nullptr;
 	int spawnAmount = 1;
 
 	ParticleSystem();
@@ -26,11 +25,11 @@ public:
 	~ParticleSystem();
 	void Initialise();
 
-	void Update(float deltaTime);
-	void Draw(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb, ID3D11Buffer* pConstantBuffer);
+	void Update(float deltaTime, float yaw, float pitch);
+	void Draw(ID3D11DeviceContext* pImmediateContext, ConstantBuffer* cb, ID3D11Buffer* pConstantBuffer);
 
 	void SpawnParticles(Vector3D pos);
-	void DeactivateParticle(int pos);
+	//void DeactivateParticle(int i);
 	Particle* GetParticleTemplate() const { return spawnTemplate; }
 
 	virtual void UpdateParticles(Particle* particle, float deltaTime) = 0;

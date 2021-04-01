@@ -20,83 +20,69 @@ ParticleSystem::~ParticleSystem()
 
 void ParticleSystem::Initialise()
 {
-	for (size_t i = 0; i < spawnLimit; i++)
+	for (size_t i = 0; i < spawnLimit; ++i)
 	{
 		arrayParticles[i] = new Particle();
 	}
 }
 
-void ParticleSystem::Update(float deltaTime)
+void ParticleSystem::Update(float deltaTime, float yaw, float pitch)
 {
-	for (size_t i = 0; i < spawnLimit; i++)
+	for (size_t i = 0; i < spawnLimit; ++i)
 	{
 		if (arrayParticles[i]->isActive)
-			arrayParticles[i]->Update(deltaTime);
+		{
+			arrayParticles[i]->Update(deltaTime, yaw, pitch);
+			if (arrayParticles[i]->lifetime < 0.0f)
+			{
+				// Particle is dead
+				arrayParticles[i]->isActive = false;
+			}
+		}	
 	}
 	UpdateParticles(nullptr, deltaTime);
 }
 
-void ParticleSystem::Draw(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb, ID3D11Buffer* pConstantBuffer)
+void ParticleSystem::Draw(ID3D11DeviceContext* pImmediateContext, ConstantBuffer* cb, ID3D11Buffer* pConstantBuffer)
 {
-	for (size_t i = 0; i < spawnLimit; i++)
+	for (size_t i = 0; i < spawnLimit; ++i)
 	{
 		if (arrayParticles[i]->isActive)
 		{
-			pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
-
-			XMFLOAT3 tempPos = { arrayParticles[i]->transform.GetPos().x, arrayParticles[i]->transform.GetPos().y, arrayParticles[i]->transform.GetPos().z };
-			XMFLOAT3 tempScale = { arrayParticles[i]->transform.GetScale().x, arrayParticles[i]->transform.GetScale().y, arrayParticles[i]->transform.GetScale().z };
-			/*if (appearance->GetBillboard())
-				tempRot.y += yaw + XM_PI;*/
-
-			if(arrayParticles[i]->isFullbright)
-				cb.AmbientMtrl = { arrayParticles[i]->colour.x, arrayParticles[i]->colour.y, arrayParticles[i]->colour.z, 0.0f };
-			else
-				cb.DiffuseMtrl = { arrayParticles[i]->colour.x, arrayParticles[i]->colour.y, arrayParticles[i]->colour.z, 0.0f };
-
-			pImmediateContext->PSSetShaderResources(0, 1, &arrayParticles[i]->texture);
-
-			pImmediateContext->IASetVertexBuffers(0, 1, &arrayParticles[i]->meshData.VertexBuffer, &arrayParticles[i]->meshData.VBStride, &arrayParticles[i]->meshData.VBOffset);
-			pImmediateContext->IASetIndexBuffer(arrayParticles[i]->meshData.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-			XMMATRIX posMatrix = XMMatrixTranslation(tempPos.x, tempPos.y, tempPos.z);
-			//XMMATRIX rotMatrix = XMMatrixRotationX(tempRot.x) * XMMatrixRotationY(tempRot.y) * XMMatrixRotationZ(tempRot.z);
-			XMMATRIX scaleMatrix = XMMatrixScaling(tempScale.x, tempScale.y, tempScale.z);
-			//XMMATRIX temp = XMMatrixMultiply(XMMatrixMultiply(rotMatrix, scaleMatrix), posMatrix);
-			XMMATRIX temp = XMMatrixMultiply(scaleMatrix, posMatrix);
-			XMFLOAT4X4 tempWorld;
-			XMStoreFloat4x4(&tempWorld, temp);
-			cb.mWorld = XMMatrixTranspose(XMLoadFloat4x4(&tempWorld));
-
-			pImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
-			pImmediateContext->DrawIndexed(arrayParticles[i]->meshData.IndexCount, 0, 0);
+			arrayParticles[i]->Draw(pImmediateContext, cb, pConstantBuffer);
 		}     
 	}
 }
 
 void ParticleSystem::SpawnParticles(Vector3D pos)
 {
-	for (size_t i = 0; i < spawnLimit; i++)
+	for (size_t i = 0; i < spawnLimit; ++i)
 	{
 		if (!arrayParticles[i]->isActive)
 		{
-			arrayParticles[i]->transform = spawnTemplate->transform;
 			arrayParticles[i]->colour = spawnTemplate->colour;
 			arrayParticles[i]->lifetime = spawnTemplate->lifetime;
 			arrayParticles[i]->meshData = spawnTemplate->meshData;
 			arrayParticles[i]->texture = spawnTemplate->texture;
 			arrayParticles[i]->isFullbright = spawnTemplate->isFullbright;
 
-			arrayParticles[i]->particleModel.SetTransform(*spawnTemplate->particleModel.GetTransform());
-			arrayParticles[i]->particleModel.SetVelocity(spawnTemplate->particleModel.GetVelocity());
-			arrayParticles[i]->particleModel.SetThrust(spawnTemplate->particleModel.GetThrust());
-			arrayParticles[i]->particleModel.SetFriction(spawnTemplate->particleModel.GetFriction());
-			arrayParticles[i]->particleModel.SetLaminarFlow(true);
-			arrayParticles[i]->particleModel.SetMass(spawnTemplate->particleModel.GetMass());
-			arrayParticles[i]->transform.SetPos(pos);
+			arrayParticles[i]->particleModel->SetTransform(new Transform());
+			arrayParticles[i]->particleModel->SetVelocity(spawnTemplate->particleModel->GetVelocity());
+			arrayParticles[i]->particleModel->SetThrust(spawnTemplate->particleModel->GetThrust());
+			arrayParticles[i]->particleModel->SetFriction(spawnTemplate->particleModel->GetFriction());
+			arrayParticles[i]->particleModel->SetLaminarFlow(spawnTemplate->particleModel->GetLaminarFlow());
+			arrayParticles[i]->particleModel->SetMass(spawnTemplate->particleModel->GetMass());
+
+			arrayParticles[i]->particleModel->GetTransform()->SetPos(pos);
+			arrayParticles[i]->particleModel->GetTransform()->SetOri(spawnTemplate->particleModel->GetTransform()->GetOri());
+			arrayParticles[i]->particleModel->GetTransform()->SetScale(spawnTemplate->particleModel->GetTransform()->GetScale());
+			arrayParticles[i]->particleModel->GetTransform()->SetBillboard(spawnTemplate->particleModel->GetTransform()->GetBillboard());
 
 			arrayParticles[i]->isActive = true;
 			spawnTimer = 0.0f;
+
+			SpawnChanges(arrayParticles[i]);
+
 			break;
 		}		
 	}

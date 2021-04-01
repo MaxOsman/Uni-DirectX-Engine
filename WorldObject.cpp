@@ -1,6 +1,6 @@
 #include "WorldObject.h"
 
-WorldObject::WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool staticTerrain)
+WorldObject::WorldObject(Transform* t, Appearance* ap, float m, bool staticTerrain)
 {
     transform = t;
     appearance = ap;
@@ -9,27 +9,33 @@ WorldObject::WorldObject(Transform* t, Appearance* ap, Vector3D v, float m, bool
         particleModel = nullptr;  
     else
     {
-        particleModel = new ParticleModel(transform, v, m);
+        particleModel = new ParticleModel(transform, m);
 
-        inertiaTensor._11 = particleModel->GetMass() * (width * width * transform->GetScale().y) * (width * width * transform->GetScale().z) / 12.0f;
+        inertiaTensor._11 = particleModel->GetMass() * (width * width * transform->GetScale().y * transform->GetScale().y) * (width * width * transform->GetScale().z * transform->GetScale().z) / 12.0f;
         inertiaTensor._12 = 0;
         inertiaTensor._13 = 0;
         inertiaTensor._21 = 0;
-        inertiaTensor._22 = particleModel->GetMass() * (width * width * transform->GetScale().x) * (width * width * transform->GetScale().z) / 12.0f;
+        inertiaTensor._22 = particleModel->GetMass() * (width * width * transform->GetScale().x * transform->GetScale().x) * (width * width * transform->GetScale().z * transform->GetScale().z) / 12.0f;
         inertiaTensor._23 = 0;
         inertiaTensor._31 = 0;
         inertiaTensor._32 = 0;
-        inertiaTensor._33 = particleModel->GetMass() * (width * width * transform->GetScale().x) * (width * width * transform->GetScale().y) / 12.0f;
+        inertiaTensor._33 = particleModel->GetMass() * (width * width * transform->GetScale().x * transform->GetScale().x) * (width * width * transform->GetScale().y * transform->GetScale().y) / 12.0f;
 
-        /*if(appearance->GetName() != "Cube")
-            particleModel->SetRadius(width * transform->GetScale().y / 2);
+        if (appearance->GetName() == "Cube")
+        {
+            particleModel->SetCollisionType(COLLISION_AABB);            
+        }    
         else
-            particleModel->SetAABBProperties(   { width * transform->GetScale().x, width * transform->GetScale().y, width * transform->GetScale().z },
-                                                {   -width * transform->GetScale().x / 2,
-                                                    -width * transform->GetScale().y / 2,
-                                                    -width * transform->GetScale().z / 2 });*/
+        {
+            particleModel->SetCollisionType(COLLISION_SPHERE);      
+        }
+        particleModel->SetRadius(width * transform->GetScale().y / 2);
+        particleModel->SetAABBProperties(   { width * transform->GetScale().x, width * transform->GetScale().y, width * transform->GetScale().z },
+                                            { -width * transform->GetScale().x / 2,
+                                            -width * transform->GetScale().y / 2,
+                                            -width * transform->GetScale().z / 2 });
 
-        particleModel->SetRadius(width * transform->GetScale().x / 2.0f);
+        //particleModel->SetRadius(width * transform->GetScale().x / 2.0f);
     }
 }
 

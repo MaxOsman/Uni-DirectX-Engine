@@ -1,5 +1,6 @@
 {
-  "meshPaths": [
+  "meshPaths": 
+  [
     "Cube",
     "Sphere",
     "Pyramid",
@@ -9,17 +10,19 @@
     "Island"
   ],
 
-  "texPaths": [
+  "texPaths": 
+  [
     "Crate",
     "Metal",
     "Stone",
     "Fur",
     "~PineTree",
     "Dirt",
-    "Particle"
+    "~Particle"
   ],
 
-  "materials": [
+  "materials": 
+  [
     {
       "name": "Dull",
       "diff": [ 0.9, 0.9, 0.9 ],
@@ -35,164 +38,181 @@
     }
   ],
 
-  "objects": [
+  "objects": 
+  [
     {
       "mesh": "Monkey",
       "tex": "Fur",
-      "mat": "Dull",
       "pos": [ 0.0, 0.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
+      "mass":  10.0,
+      "phys": true,
       "trans": false
     },
 
     {
       "mesh": "Island",
       "tex": "Dirt",
-      "mat": "Dull",
       "pos": [ 0.0, -12.0, 0.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 6.0, 6.0, 6.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": false
     },
 
     {
       "mesh": "Sphere",
       "tex": "Stone",
-      "mat": "Shiny",
       "pos": [ 0.0, 15.0, 0.0 ],
       "rot": [ 0.0, 45.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": false
     },
 
     {
       "mesh": "Cube",
       "tex": "Crate",
-      "mat": "Dull",
       "pos": [ -14.0, 2.0, -10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": true
     },
 
     {
       "mesh": "Cube",
       "tex": "Metal",
-      "mat": "Shiny",
       "pos": [ -10.0, 2.0, -10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": true
     },
 
     {
       "mesh": "Cube",
       "tex": "Crate",
-      "mat": "Dull",
       "pos": [ -14.0, 2.0, -6.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": true
     },
 
     {
       "mesh": "Cube",
       "tex": "Metal",
-      "mat": "Shiny",
       "pos": [ -13.0, 6.0, -8.0 ],
       "rot": [ 0.0, 25.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": true
     },
 
     {
       "mesh": "TreePlane",
       "tex": "~PineTree",
-      "mat": "Dull",
       "pos": [ 13.0, 4.0, -7.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": false
     },
 
     {
       "mesh": "TreePlane",
       "tex": "~PineTree",
-      "mat": "Dull",
       "pos": [ 7.0, 4.0, 5.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": false
     },
 
     {
       "mesh": "TreePlane",
       "tex": "~PineTree",
-      "mat": "Dull",
       "pos": [ 1.0, 4.0, -2.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": false
     },
 
     {
       "mesh": "TreePlane",
       "tex": "~PineTree",
-      "mat": "Dull",
       "pos": [ -5.0, 4.0, 11.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": false
     },
 
     {
       "mesh": "TreePlane",
       "tex": "~PineTree",
-      "mat": "Dull",
       "pos": [ -11.0, 4.0, 3.0 ],
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
+      "mass": 0.0,
+      "phys": false,
       "trans": false
     },
 
     {
       "mesh": "Cube",
       "tex": "Metal",
-      "mat": "Shiny",
       "pos": [ 10.0, 2.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 100.0,
+      "phys": true,
       "trans": false
     },
 
     {
       "mesh": "Pyramid",
       "tex": "Metal",
-      "mat": "Shiny",
       "pos": [ 10.0, 5.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 25.0,
+      "phys": true,
       "trans": false
     },
 
     {
       "mesh": "Pyramid",
       "tex": "Crate",
-      "mat": "Dull",
       "pos": [ 6.0, 1.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
+      "mass": 15.0,
+      "phys": true,
       "trans": false
     },
 
     {
       "mesh": "Cube",
       "tex": "Metal",
-      "mat": "Shiny",
       "pos": [ 0.0, 0.0, 10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
+      "mass": 50.0,
+      "phys": true,
       "trans": false
     }
   ]

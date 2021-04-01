@@ -24,6 +24,6 @@ public:
 	void Shutdown();
 	bool DoesExist(std::string systemName);
 
-	void Update(float deltaTime);
-	void Render(ID3D11DeviceContext* pImmediateContext, ConstantBuffer cb, ID3D11Buffer* pConstantBuffer);
+	void Update(float deltaTime, float yaw, float pitch);
+	void Render(ID3D11DeviceContext* pImmediateContext, ConstantBuffer* cb, ID3D11Buffer* pConstantBuffer);
 };

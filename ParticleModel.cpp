@@ -1,16 +1,23 @@
 #include "ParticleModel.h"
 
-ParticleModel::ParticleModel(Transform* t, Vector3D v, float m)
+ParticleModel::ParticleModel(Transform* t, float m)
 {
     transform = t;
-    velocity = v;
     mass = m;
 
     isLaminar = false;
     weightForce = { 0.0f, -G * mass, 0.0f };
 }
 
-ParticleModel::ParticleModel() {}
+ParticleModel::ParticleModel()
+{
+    transform = {};
+    mass = 1.0f;
+
+    isLaminar = false;
+    weightForce = { 0.0f, -G, 0.0f };
+    collisionType = COLLISION_NONE;
+}
 
 ParticleModel::~ParticleModel()
 {
@@ -47,7 +54,12 @@ void ParticleModel::MoveConstAcceleration(const float deltaTime)
 
 void ParticleModel::UpdateNetForce()
 {
-    netForce = thrustForce + frictionForce + dragForce + weightForce + reactionForce;
+    netForce =  thrustForce
+                + frictionForce 
+                + dragForce 
+                + weightForce 
+                + reactionForce
+                ;
 }
 
 void ParticleModel::UpdateAccel()
@@ -110,14 +122,14 @@ void ParticleModel::UpdateGravity()
 
 void ParticleModel::UpdateGround()
 {
-    if (transform->GetPos().y <= 0.9f)
+    if (transform->GetPos().y - widths.y / 2 <= 0.0f)
     {
         if (!isGrounded)
         {
             isGrounded = true;
         }
         velocity.y = 0.0f;
-        transform->SetPos({ transform->GetPos().x, 0.9f, transform->GetPos().z });
+        transform->SetPos({ transform->GetPos().x, widths.y / 2, transform->GetPos().z });
     }
     else
         isGrounded = false;
@@ -184,11 +196,6 @@ bool ParticleModel::TestAxis(Vector3D axis, float corner1, float width1, float c
     }
 
     return true;
-}
-
-void ParticleModel::AddImpulseAsForce(Vector3D force)
-{
-
 }
 
 CollisionData ParticleModel::SphereAABBCollision(Vector3D position1, float radius1, Vector3D corner2, Vector3D widths2)

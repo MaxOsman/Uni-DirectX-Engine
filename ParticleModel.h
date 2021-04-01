@@ -5,12 +5,6 @@
 
 #define G 9.81f
 
-enum CollisionType
-{
-	COLLISION_SPHERE,
-	COLLISION_AABB
-};
-
 enum Directions
 {
 	FORWARD,
@@ -19,6 +13,13 @@ enum Directions
 	DOWN,
 	LEFT,
 	RIGHT
+};
+
+enum CollisionType
+{
+	COLLISION_SPHERE,
+	COLLISION_AABB,
+	COLLISION_NONE
 };
 
 struct CollisionData
@@ -53,7 +54,7 @@ private:
 	Transform* transform;
 
 public:
-	ParticleModel(Transform* t, Vector3D v, float m);
+	ParticleModel(Transform* t, float m);
 	ParticleModel();
 	~ParticleModel();
 
@@ -87,12 +88,13 @@ public:
 	bool GetGrounded() { return isGrounded; }
 
 	float GetRadius() { return boundSphereRadius; }
-	void SetRadius(float r) { boundSphereRadius = r; collisionType = COLLISION_SPHERE; }
+	void SetRadius(float r) { boundSphereRadius = r; }
 	Vector3D GetCorner() { return corner; }
 	Vector3D GetWidths() { return widths; }
 	CollisionType GetCollisionType() { return collisionType; }
 	void SetCollided(bool c) { isCollided = c; }
-	void SetAABBProperties(Vector3D w, Vector3D c) { widths = w; corner = c; collisionType = COLLISION_AABB; }
+	void SetAABBProperties(Vector3D w, Vector3D c) { widths = w; corner = c; }
+	void SetCollisionType(CollisionType c) { collisionType = c; }
 
 	void SetNetForce(Vector3D f) { netForce = f; }
 	Vector3D GetNetForce() { return netForce; }
@@ -102,7 +104,6 @@ public:
 	Vector3D GetFriction() { return frictionForce; }
 	void SetLaminarFlow(bool lam) { isLaminar = lam; }
 	bool GetLaminarFlow() { return isLaminar; }
-	void SetTransform(Transform t) { transform = &t; }
+	void SetTransform(Transform* t) { transform = t; }
 	Transform* GetTransform() { return transform; }
-	void AddImpulseAsForce(Vector3D force);
 };

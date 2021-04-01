@@ -11,8 +11,8 @@ Transform::Transform(Vector3D p, Vector3D r, Vector3D s, bool bill)
 Transform::Transform()
 {
     pos = { 0, 0, 0 };
-    orientation = { 0, 0, 0, 0 };
-    scale = { 0, 0, 0 };
+    orientation = EulerToQuat({ 0, 0, 0 });
+    scale = { 1, 1, 1 };
     billboard = false;
 }
 
@@ -24,6 +24,7 @@ void Transform::Translate(Vector3D d)
 Vector3D Transform::QuatToEuler(Quaternion q)
 {
     // math.stackexchange.com/questions/2975109/how-to-convert-euler-angles-to-quaternions-and-get-the-same-euler-angles-back-fr
+
     float a = 2.0f * (q.r * q.i + q.j * q.k);
     float b = 1.0f - 2.0f * (q.i * q.i + q.j * q.j);
     float x = atan2(a, b);

@@ -17,8 +17,11 @@
 #include "Light.h"
 #include "WorldObject.h"
 #include "Debug.h"
+
 #include "ParticleManager.h"
 #include "FireParticleSystem.h"
+#include "SmokeParticleSystem.h"
+#include "CubeParticleSystem.h"
 
 using namespace std;
 using json = nlohmann::json;
