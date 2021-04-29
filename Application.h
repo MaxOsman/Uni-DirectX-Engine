@@ -3,6 +3,7 @@
 #define GRID_WIDTH 64
 #define GRID_DEPTH 64
 #define HEIGHT_SCALE 5.0f
+#define CLEARCOLOUR { 0.0f, 0.125f, 0.3f, 1.0f }
 
 #include "DDSTextureLoader.h"
 #include <vector>
@@ -88,6 +89,7 @@ private:
 	void CollisionResponseAABB(Vector3D penetration, int i, int j);
 	void CollisionResponseSphere(Vector3D penetration, int i, int j, float deltaTime);
 	Vector3D ProjectUOnV(Vector3D u, Vector3D v);
+	void CollisionVelocities(int i, int j);
 	void CollisionResponseAABBSphere(Vector3D penetration, int i, int j, int sphereIndex, float multiply);
 
 public:

@@ -110,14 +110,7 @@ void ParticleModel::UpdateDrag()
 
 void ParticleModel::UpdateGravity()
 {
-    if (isGrounded)
-    {
-        reactionForce = { 0.0f, G * mass, 0.0f };
-    }
-    else
-    {
-        reactionForce = { 0.0f, 0.0f, 0.0f };
-    }      
+    reactionForce = (isGrounded ? Vector3D( 0.0f, G* mass, 0.0f ) : Vector3D( 0.0f, 0.0f, 0.0f ));
 }
 
 void ParticleModel::UpdateGround()
@@ -140,7 +133,8 @@ CollisionData ParticleModel::SphereCollision(Vector3D position, float radius)
     if (position.distance(transform->GetPos()) < (radius + boundSphereRadius))
     {
         Vector3D distance = position - transform->GetPos();
-        return { true, VectorDirection(distance), distance };
+        if(distance.magnitude() != 0.0f)
+            return { true, VectorDirection(distance), distance };
     }
        
     return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };
@@ -160,7 +154,7 @@ CollisionData ParticleModel::AABBCollision(Vector3D corner1, Vector3D widths1, V
         return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };
 
     float penetration = sqrt(*mtvDistance) * 1.001f;
-    Vector3D minimumTranslation = mtvAxis->normalization();
+    Vector3D minimumTranslation = (mtvAxis->magnitude() != 0.0f ? mtvAxis->normalization() : Vector3D(0.0f, 0.0f, 0.0f));
 
     return { true, VectorDirection(minimumTranslation * penetration), minimumTranslation * penetration };
 }
@@ -180,11 +174,7 @@ bool ParticleModel::TestAxis(Vector3D axis, float corner1, float width1, float c
     if (leftOverlap <= 0.0f || rightOverlap <= 0.0f)
         return false;
 
-    float overlap;
-    if (leftOverlap < rightOverlap)
-        overlap = leftOverlap;
-    else
-        overlap = -rightOverlap;
+    float overlap = (leftOverlap < rightOverlap ? leftOverlap : -rightOverlap);
 
     Vector3D sep = axis * (overlap / axisLengthSquared);
 
@@ -209,7 +199,12 @@ CollisionData ParticleModel::SphereAABBCollision(Vector3D position1, float radiu
     //float distance = sqrt((x - position1.x) * (x - position1.x) + (y - position1.y) * (y - position1.y) + (z - position1.z) * (z - position1.z));
     Vector3D distance = { x - position1.x , y - position1.y , z - position1.z };
     if (distance.magnitude() < radius1)
-        return { true, VectorDirection(distance), distance };
+    {
+        //if (distance.magnitude() != 0.0f)
+            return { true, VectorDirection(distance), distance };
+        //else
+        //    return { true, FORWARD, distance };
+    }
 
     return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };
 }

@@ -47,7 +47,6 @@
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "mass":  10.0,
-      "phys": true,
       "trans": false
     },
 
@@ -58,7 +57,6 @@
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 6.0, 6.0, 6.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": false
     },
 
@@ -69,7 +67,6 @@
       "rot": [ 0.0, 45.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": false
     },
 
@@ -80,7 +77,6 @@
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": true
     },
 
@@ -91,7 +87,6 @@
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": true
     },
 
@@ -102,7 +97,6 @@
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": true
     },
 
@@ -113,7 +107,6 @@
       "rot": [ 0.0, 25.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": true
     },
 
@@ -124,7 +117,6 @@
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": false
     },
 
@@ -135,7 +127,6 @@
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": false
     },
 
@@ -146,7 +137,6 @@
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": false
     },
 
@@ -157,7 +147,6 @@
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": false
     },
 
@@ -168,7 +157,6 @@
       "rot": [ 90.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "mass": 0.0,
-      "phys": false,
       "trans": false
     },
 
@@ -178,8 +166,7 @@
       "pos": [ 10.0, 2.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "mass": 100.0,
-      "phys": true,
+      "mass": 75.0,
       "trans": false
     },
 
@@ -189,8 +176,7 @@
       "pos": [ 10.0, 5.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "mass": 25.0,
-      "phys": true,
+      "mass": 20.0,
       "trans": false
     },
 
@@ -200,19 +186,17 @@
       "pos": [ 6.0, 1.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "mass": 15.0,
-      "phys": true,
+      "mass": 10.0,
       "trans": false
     },
 
     {
-      "mesh": "Cube",
+      "mesh": "Sphere",
       "tex": "Metal",
       "pos": [ 0.0, 0.0, 10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "mass": 50.0,
-      "phys": true,
+      "mass": 25.0,
       "trans": false
     }
   ]

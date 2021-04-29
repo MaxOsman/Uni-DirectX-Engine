@@ -21,13 +21,14 @@ WorldObject::WorldObject(Transform* t, Appearance* ap, float m, bool staticTerra
         inertiaTensor._32 = 0;
         inertiaTensor._33 = particleModel->GetMass() * (width * width * transform->GetScale().x * transform->GetScale().x) * (width * width * transform->GetScale().y * transform->GetScale().y) / 12.0f;
 
-        if (appearance->GetName() == "Cube")
+        std::string n = appearance->GetName();
+        if (n == "Cube" || n == "Pyramid")
         {
-            particleModel->SetCollisionType(COLLISION_AABB);            
+            particleModel->SetCollisionType(COLLISION_AABB);
         }    
         else
         {
-            particleModel->SetCollisionType(COLLISION_SPHERE);      
+            particleModel->SetCollisionType(COLLISION_SPHERE);
         }
         particleModel->SetRadius(width * transform->GetScale().y / 2);
         particleModel->SetAABBProperties(   { width * transform->GetScale().x, width * transform->GetScale().y, width * transform->GetScale().z },

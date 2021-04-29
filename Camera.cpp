@@ -43,10 +43,7 @@ void Camera::Update(CameraMode mode, HWND hWnd, Vector3D pos)
         SetCursorPos(0.5 * rc.right + 0.5 * rc.left, 0.5 * rc.bottom + 0.5 * rc.top);
 
         _eye = _monkey;
-        if(_mode == CAMERA_FIRST)
-            XMStoreFloat4x4(&_view, GetMatrix1st());
-        else
-            XMStoreFloat4x4(&_view, GetMatrix3rd());
+        XMStoreFloat4x4(&_view, (_mode == CAMERA_FIRST ? GetMatrix1st() : GetMatrix3rd()));
     }
     else if (_mode == CAMERA_TOPDOWN)
     {
