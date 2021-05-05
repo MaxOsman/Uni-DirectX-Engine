@@ -110,12 +110,10 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     FireParticleSystem* fireSystem = new FireParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
     fireSystem->position = { 15, 0, 5 };
-    fireSystem->Initialise();
     _particleManager->AddSystem(fireSystem);
 
     SmokeParticleSystem* smokeSystem = new SmokeParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
     smokeSystem->position = { 15, 0, 5 };
-    smokeSystem->Initialise();
     _particleManager->AddSystem(smokeSystem);
 
     for (int i = 0; i < _meshes.size(); ++i)
@@ -137,10 +135,7 @@ HRESULT Application::Initialise(HINSTANCE hInstance, int nCmdShow)
 
     CubeParticleSystem* cubeSystem = new CubeParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture);
     cubeSystem->position = { -15, 0, 5 };
-    cubeSystem->Initialise();
     _particleManager->AddSystem(cubeSystem);
-
-    //_objects[PHYSOBJECT].CalcTorque({1,1,0});
       
 	return S_OK;
 }
@@ -762,7 +757,34 @@ bool Application::HandleKeyboard(MSG msg)
             return true;
 
         case VK_SPACE:
-            _objects[PLAYEROBJECT].PlayerJump(3000.0f);
+            if (_objects[PLAYEROBJECT].GetParticle()->GetGrounded() || _objects[PLAYEROBJECT].GetParticle()->GetOnObject())
+            {
+                Vector3D tempVec = { 0.0f, JUMP_STRENGTH, 0.0f };
+                _objects[PLAYEROBJECT].GetParticle()->SetThrust(_objects[PLAYEROBJECT].GetParticle()->GetThrust() + tempVec);
+
+                //Get right mesh
+                int meshIndex = 0;
+                for (int i = 0; i < _meshes.size(); ++i)
+                {
+                    if (_meshes[i].name == "Plane")
+                    {
+                        meshIndex = i;
+                        break;
+                    }
+                }
+                //Get right texture
+                int texIndex = 0;
+                for (int i = 0; i < _textures.size(); ++i)
+                {
+                    if (_textures[i].name == "~Particle")
+                    {
+                        texIndex = i;
+                        break;
+                    }
+                }
+                GroundParticleSystem* groundSystem = new GroundParticleSystem(_meshes[meshIndex].meshData, _textures[texIndex].texture, _objects[PLAYEROBJECT].GetTransform()->GetPos());
+                _particleManager->AddSystem(groundSystem);
+            }
             return true;
         }
     }
@@ -773,6 +795,7 @@ bool Application::HandleKeyboard(MSG msg)
 void Application::HandlePerFrameInput(float deltaTime)
 {
     _objects[PLAYEROBJECT].GetParticle()->SetThrust({0.0f, 0.0f, 0.0f});
+    _objects[TORQUE_OBJECT].SetTorque({ 0,0,0 });
     if (GetAsyncKeyState('W'))
     {
         _objects[PLAYEROBJECT].PlayerMove({ 0.0f, 0.0f, playerSpeed * deltaTime }, _camera->GetYaw());
@@ -820,6 +843,30 @@ void Application::HandlePerFrameInput(float deltaTime)
     if (GetAsyncKeyState(VK_RIGHT))
     {
         _light->AddDirection({ -2.0f * deltaTime, 0.0f, 0.0f });
+    }
+    if (GetAsyncKeyState('I'))
+    {
+        _objects[TORQUE_OBJECT].CalcTorque({ 0,0, -deltaTime * TORQUE_STRENGTH }, {0,_objects[TORQUE_OBJECT].GetParticle()->GetWidths().y,0});
+    }
+    if (GetAsyncKeyState('J'))
+    {
+        _objects[TORQUE_OBJECT].CalcTorque({ deltaTime * TORQUE_STRENGTH,0,0 }, { 0,_objects[TORQUE_OBJECT].GetParticle()->GetWidths().y,0 });
+    }
+    if (GetAsyncKeyState('K'))
+    {
+        _objects[TORQUE_OBJECT].CalcTorque({ 0,0,deltaTime * TORQUE_STRENGTH }, { 0,_objects[TORQUE_OBJECT].GetParticle()->GetWidths().y,0 });
+    }
+    if (GetAsyncKeyState('L'))
+    {
+        _objects[TORQUE_OBJECT].CalcTorque({ -deltaTime * TORQUE_STRENGTH,0,0 }, { 0,_objects[TORQUE_OBJECT].GetParticle()->GetWidths().y,0 });
+    }
+    if (GetAsyncKeyState('U'))
+    {
+        _objects[TORQUE_OBJECT].CalcTorque({ 0,0,deltaTime * TORQUE_STRENGTH }, { _objects[TORQUE_OBJECT].GetParticle()->GetWidths().x,0,0 });
+    }
+    if (GetAsyncKeyState('O'))
+    {
+        _objects[TORQUE_OBJECT].CalcTorque({ 0,0,-deltaTime * TORQUE_STRENGTH }, { _objects[TORQUE_OBJECT].GetParticle()->GetWidths().x,0,0 });
     }
 
     playerSpeed = (GetAsyncKeyState(VK_SHIFT) ? PLAYERSPEED * 2.0f : PLAYERSPEED);
@@ -929,33 +976,34 @@ void Application::CollisionResponseSphere(Vector3D penetration, int i, int j, fl
     float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
     float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
 
+    Velocities3D v = CollisionVelocities(i, j);
+    _objects[i].GetParticle()->SetVelocity(v.i);
+    _objects[j].GetParticle()->SetVelocity(v.j);
+
     Vector3D pene = penetration.normalization() * (_objects[i].GetParticle()->GetRadius() + _objects[j].GetParticle()->GetRadius()) - penetration;
-
-    CollisionVelocities(i, j);
-
     _objects[i].GetTransform()->SetPos(_objects[i].GetTransform()->GetPos() - pene);
     _objects[j].GetTransform()->SetPos(_objects[j].GetTransform()->GetPos() + pene);
 }
 
 Vector3D Application::ProjectUOnV(Vector3D u, Vector3D v)
 {
-     return v * u.dot_product(v) / v.dot_product(v);
+    return v * u.dot_product(v) / v.dot_product(v);
 }
 
-void Application::CollisionVelocities(int i, int j)
+Velocities3D Application::CollisionVelocities(int i, int j)
 {
     Vector3D newI = _objects[i].GetParticle()->GetVelocity();
     newI += ProjectUOnV(_objects[j].GetParticle()->GetVelocity(), _objects[j].GetTransform()->GetPos() - _objects[i].GetTransform()->GetPos());
     newI -= ProjectUOnV(_objects[i].GetParticle()->GetVelocity(), _objects[i].GetTransform()->GetPos() - _objects[j].GetTransform()->GetPos());
-    newI = (newI.magnitude() != 0.0f ? newI.normalization() : Vector3D(0.0f, 0.0f, 0.0f));
 
     Vector3D newJ = _objects[j].GetParticle()->GetVelocity();
     newJ += ProjectUOnV(_objects[i].GetParticle()->GetVelocity(), _objects[j].GetTransform()->GetPos() - _objects[i].GetTransform()->GetPos());
     newJ -= ProjectUOnV(_objects[j].GetParticle()->GetVelocity(), _objects[i].GetTransform()->GetPos() - _objects[j].GetTransform()->GetPos());
-    newJ = (newJ.magnitude() != 0.0f ? newJ.normalization() : Vector3D(0.0f, 0.0f, 0.0f));
 
-    _objects[i].GetParticle()->SetVelocity(newI * 16.0f / _objects[i].GetParticle()->GetMass());
-    _objects[j].GetParticle()->SetVelocity(newJ * 16.0f / _objects[j].GetParticle()->GetMass());
+    return { newI / _objects[i].GetParticle()->GetMass(), newJ / _objects[j].GetParticle()->GetMass() };
+
+    /*_objects[i].GetParticle()->SetVelocity(newI / _objects[i].GetParticle()->GetMass());
+    _objects[j].GetParticle()->SetVelocity(newJ / _objects[j].GetParticle()->GetMass());*/
 } 
 
 void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j, int sphereIndex, float multiply)
@@ -967,7 +1015,7 @@ void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j
     Vector3D norm = (penetration.magnitude() != 0.0f ? penetration.normalization() : Vector3D(0.0f, 0.0f, 0.0f));
     Vector3D pene = (norm * _objects[sphereIndex].GetParticle()->GetRadius() - penetration) * multiply;
 
-    CollisionVelocities(i, j);
+    Velocities3D v = CollisionVelocities(i, j);
 
     switch (dir)
     {
@@ -975,6 +1023,8 @@ void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j
     case BACK:
         //pene = (_objects[sphereIndex].GetParticle()->GetRadius() - abs(penetration.x)) * multiply;
         //_objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
+        _objects[i].GetParticle()->SetVelocityX(v.i.x);
+        _objects[j].GetParticle()->SetVelocityX(v.j.x);
         if (dir == FORWARD)
         {
             _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - pene.x * massFormulaI);
@@ -989,6 +1039,8 @@ void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j
     case UP:
     case DOWN:
         //_objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
+        _objects[i].GetParticle()->SetVelocityY(v.i.y);
+        _objects[j].GetParticle()->SetVelocityY(v.j.y);
         if (dir == UP)
         {
             _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - pene.y * massFormulaI);
@@ -996,6 +1048,7 @@ void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j
         }
         else
         {
+            _objects[i].GetParticle()->SetOnObject(true);
             _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y + pene.y * massFormulaI);
             _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y - pene.y * massFormulaJ);
         }
@@ -1003,6 +1056,8 @@ void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j
     case LEFT:
     case RIGHT:
         //_objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
+        _objects[i].GetParticle()->SetVelocityZ(v.i.z);
+        _objects[j].GetParticle()->SetVelocityZ(v.j.z);
         if (dir == LEFT)
         {
             _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - pene.z * massFormulaI);
@@ -1022,13 +1077,15 @@ void Application::CollisionResponseAABB(Vector3D penetration, int i, int j)
     float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
     float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
 
-    CollisionVelocities(i, j);
+    Velocities3D v = CollisionVelocities(i, j);
 
+    Vector3D pene = (penetration.magnitude() != 0.0f ? penetration.normalization() : Vector3D(0.0f, 0.0f, 0.0f));
     switch (dir)
     {
     case FORWARD:
     case BACK:
-        //_objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
+        _objects[i].GetParticle()->SetVelocityX(v.i.x);
+        _objects[j].GetParticle()->SetVelocityX(v.j.x);
         if (dir == FORWARD)
         {
             _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - penetration.x * massFormulaI);
@@ -1042,7 +1099,8 @@ void Application::CollisionResponseAABB(Vector3D penetration, int i, int j)
         break;
     case UP:
     case DOWN:
-        //_objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
+        _objects[i].GetParticle()->SetVelocityY(v.i.y);
+        _objects[j].GetParticle()->SetVelocityY(v.j.y);
         if (dir == UP)
         {
             _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - penetration.y * massFormulaI);
@@ -1056,7 +1114,8 @@ void Application::CollisionResponseAABB(Vector3D penetration, int i, int j)
         break;
     case LEFT:
     case RIGHT:
-        //_objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
+        _objects[i].GetParticle()->SetVelocityZ(v.i.z);
+        _objects[j].GetParticle()->SetVelocityZ(v.j.z);
         if (dir == LEFT)
         {
             _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - penetration.z * massFormulaI);
@@ -1107,6 +1166,7 @@ void Application::Update()
             else
             {
                 _objects[i].Update(deltaTime, yaw, 0.0f);
+                _objects[i].GetParticle()->SetOnObject(false);
                 CollisionDetection(i, deltaTime);
             }          
         }

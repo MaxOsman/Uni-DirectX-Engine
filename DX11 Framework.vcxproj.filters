@@ -80,10 +80,18 @@
     <ClInclude Include="Quaternion.h">
       <Filter>Source\Resources</Filter>
     </ClInclude>
+    <ClInclude Include="SmokeParticleSystem.h">
+      <Filter>Source\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeParticleSystem.h">
+      <Filter>Source\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="GroundParticleSystem.h">
+      <Filter>Source\Particles</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SceneData.json" />
-    <None Include="SceneDataProcedural.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11 Framework.rc">
@@ -132,6 +140,15 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="ParticleModel.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="SmokeParticleSystem.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="CubeParticleSystem.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="GroundParticleSystem.cpp">
       <Filter>Source\Particles</Filter>
     </ClCompile>
   </ItemGroup>

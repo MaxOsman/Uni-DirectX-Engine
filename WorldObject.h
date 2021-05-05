@@ -17,7 +17,7 @@ private:
 
 	float width = 2.0f;
 	XMFLOAT3X3 inertiaTensor;
-	float angDamping = 1.0f;
+	float angDamping = 0.4f;
 	Vector3D torque = { 0, 0, 0 };
 	Vector3D angAccel = { 0, 0, 0 };
 	Vector3D angVelocity = { 0, 0, 0 };
@@ -32,14 +32,14 @@ public:
 	bool GetTerrain() { return isStaticTerrain; }
 
 	void SetAngAccel(Vector3D a) { angAccel = a; }
-	void CalcTorque(Vector3D force) { torque = transform->GetPos().cross_product(force); }
+	void SetTorque(Vector3D t) { torque = t; }
+	void CalcTorque(Vector3D force, Vector3D relativePos) { torque = relativePos.cross_product(force); }
 	void CalcAngularAccel();
 	void UpdateRotationalSpeed(float deltaTime);
 	void UpdateRotationalOrientation(float deltaTime);
 
 	void CameraTranslate(XMFLOAT3 d, float pitch, float yaw);
 	void PlayerMove(XMFLOAT3 a, float yaw);
-	void PlayerJump(float jump);
 
 	void Update(float deltaTime, float yaw, float pitch);
 	void Render(ConstantBuffer cb, ID3D11DeviceContext* pImmediateContext, ID3D11Buffer* pConstantBuffer, ID3D11BlendState* transparency);

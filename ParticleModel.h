@@ -35,11 +35,6 @@ private:
 	Vector3D velocity;
 	Vector3D acceleration;
 
-	CollisionType collisionType;
-	float boundSphereRadius;
-	Vector3D widths;
-	Vector3D corner;
-
 	Vector3D netForce;
 	Vector3D thrustForce;
 	Vector3D frictionForce;
@@ -47,9 +42,15 @@ private:
 	Vector3D weightForce;
 	Vector3D reactionForce;
 
+	CollisionType collisionType;
+	float boundSphereRadius;
+	Vector3D widths;
+	Vector3D corner;
+
 	float mass;
 	bool isLaminar;
 	bool isGrounded = false;
+	bool isOnObject = false;
 	bool isCollided = false;
 	Transform* transform;
 
@@ -86,6 +87,7 @@ public:
 	float GetMass() { return mass; }
 	void SetGrounded(bool g) { isGrounded = g; }
 	bool GetGrounded() { return isGrounded; }
+	bool GetOnObject() { return isOnObject; }
 
 	float GetRadius() { return boundSphereRadius; }
 	void SetRadius(float r) { boundSphereRadius = r; }
@@ -95,6 +97,7 @@ public:
 	void SetCollided(bool c) { isCollided = c; }
 	void SetAABBProperties(Vector3D w, Vector3D c) { widths = w; corner = c; }
 	void SetCollisionType(CollisionType c) { collisionType = c; }
+	void SetOnObject(bool o) { isOnObject = o; }
 
 	void SetNetForce(Vector3D f) { netForce = f; }
 	Vector3D GetNetForce() { return netForce; }

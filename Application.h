@@ -4,6 +4,10 @@
 #define GRID_DEPTH 64
 #define HEIGHT_SCALE 5.0f
 #define CLEARCOLOUR { 0.0f, 0.125f, 0.3f, 1.0f }
+#define KNOCKBACK_STRENGTH 16.0f
+#define JUMP_STRENGTH 3000.0f
+#define TORQUE_OBJECT 2
+#define TORQUE_STRENGTH 3000.0f
 
 #include "DDSTextureLoader.h"
 #include <vector>
@@ -23,9 +27,16 @@
 #include "FireParticleSystem.h"
 #include "SmokeParticleSystem.h"
 #include "CubeParticleSystem.h"
+#include "GroundParticleSystem.h"
 
 using namespace std;
 using json = nlohmann::json;
+
+struct Velocities3D
+{
+	Vector3D i;
+	Vector3D j;
+};
 
 class Application
 {
@@ -89,7 +100,7 @@ private:
 	void CollisionResponseAABB(Vector3D penetration, int i, int j);
 	void CollisionResponseSphere(Vector3D penetration, int i, int j, float deltaTime);
 	Vector3D ProjectUOnV(Vector3D u, Vector3D v);
-	void CollisionVelocities(int i, int j);
+	Velocities3D CollisionVelocities(int i, int j);
 	void CollisionResponseAABBSphere(Vector3D penetration, int i, int j, int sphereIndex, float multiply);
 
 public:

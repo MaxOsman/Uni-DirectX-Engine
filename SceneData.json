@@ -18,7 +18,12 @@
     "Fur",
     "~PineTree",
     "Dirt",
-    "~Particle"
+    "~Particle",
+    "DirtLight",
+    "Grass",
+    "Stone2",
+    "Snow",
+    "Blend"
   ],
 
   "materials": 
@@ -61,12 +66,12 @@
     },
 
     {
-      "mesh": "Sphere",
+      "mesh": "Cube",
       "tex": "Stone",
-      "pos": [ 0.0, 15.0, 0.0 ],
-      "rot": [ 0.0, 45.0, 0.0 ],
+      "pos": [ -10.0, 2.0, 10.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "mass": 0.0,
+      "mass": 10.0,
       "trans": false
     },
 
@@ -171,11 +176,11 @@
     },
 
     {
-      "mesh": "Pyramid",
+      "mesh": "Cube",
       "tex": "Metal",
       "pos": [ 10.0, 5.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 2.0, 2.0, 2.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
       "mass": 20.0,
       "trans": false
     },
@@ -186,7 +191,7 @@
       "pos": [ 6.0, 1.0, 12.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 2.0, 2.0, 2.0 ],
-      "mass": 10.0,
+      "mass": 1.0,
       "trans": false
     },
 
@@ -196,7 +201,17 @@
       "pos": [ 0.0, 0.0, 10.0 ],
       "rot": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "mass": 25.0,
+      "mass": 5.0,
+      "trans": false
+    },
+
+    {
+      "mesh": "GridMesh",
+      "tex": "Crate",
+      "pos": [ 0.0, 0.0, -75.0 ],
+      "rot": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "mass": 0.0,
       "trans": false
     }
   ]

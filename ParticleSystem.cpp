@@ -5,7 +5,11 @@ ParticleSystem::ParticleSystem(int particleLimit, Vector3D systemLocation, std::
 	spawnLimit = particleLimit;
 	position = systemLocation;
 	systemName = name;
-	//arrayParticles = new Particle * [spawnLimit];
+	isActive = true;
+	for (size_t i = 0; i < spawnLimit; ++i)
+	{
+		arrayParticles[i] = new Particle();
+	}
 }
 
 ParticleSystem::ParticleSystem()
@@ -16,14 +20,6 @@ ParticleSystem::ParticleSystem()
 ParticleSystem::~ParticleSystem()
 {
 	delete[] arrayParticles;
-}
-
-void ParticleSystem::Initialise()
-{
-	for (size_t i = 0; i < spawnLimit; ++i)
-	{
-		arrayParticles[i] = new Particle();
-	}
 }
 
 void ParticleSystem::Update(float deltaTime, float yaw, float pitch)

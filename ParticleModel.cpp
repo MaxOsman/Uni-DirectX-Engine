@@ -69,7 +69,7 @@ void ParticleModel::UpdateAccel()
 
 void ParticleModel::UpdateFriction()
 {
-    if (isGrounded && netForce.magnitude() != 0.0f)
+    if ((isGrounded || isOnObject) && netForce.magnitude() != 0.0f)
     {
         float FrictionMag = 2.0f * mass * G;
         if (thrustForce.magnitude() <= FrictionMag && velocity.magnitude() <= 0.1f)
@@ -81,9 +81,12 @@ void ParticleModel::UpdateFriction()
         }
         else
         {
-            FrictionMag = 1.0f * mass * G;
-            Vector3D frictionDir = velocity * -1.0f / velocity.magnitude();
-            frictionForce = frictionDir * FrictionMag;
+            if (velocity.magnitude() != 0.0f)
+            {
+                FrictionMag = 1.0f * mass * G;
+                Vector3D frictionDir = velocity * -1.0f / velocity.magnitude();
+                frictionForce = frictionDir * FrictionMag;
+            }
         }
     }
     else
@@ -110,7 +113,7 @@ void ParticleModel::UpdateDrag()
 
 void ParticleModel::UpdateGravity()
 {
-    reactionForce = (isGrounded ? Vector3D( 0.0f, G* mass, 0.0f ) : Vector3D( 0.0f, 0.0f, 0.0f ));
+    reactionForce = (isGrounded || isOnObject ? Vector3D( 0.0f, G * mass, 0.0f ) : Vector3D( 0.0f, 0.0f, 0.0f ));
 }
 
 void ParticleModel::UpdateGround()
@@ -200,10 +203,7 @@ CollisionData ParticleModel::SphereAABBCollision(Vector3D position1, float radiu
     Vector3D distance = { x - position1.x , y - position1.y , z - position1.z };
     if (distance.magnitude() < radius1)
     {
-        //if (distance.magnitude() != 0.0f)
-            return { true, VectorDirection(distance), distance };
-        //else
-        //    return { true, FORWARD, distance };
+        return { true, VectorDirection(distance), distance };
     }
 
     return { false, FORWARD, { 0.0f, 0.0f, 0.0f } };

@@ -381,31 +381,35 @@
     <ClCompile Include="Appearance.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CubeParticleSystem.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DX11 Framework.cpp" />
     <ClCompile Include="FireParticleSystem.cpp" />
+    <ClCompile Include="GroundParticleSystem.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="ParticleManager.cpp" />
     <ClCompile Include="ParticleModel.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
+    <ClCompile Include="SmokeParticleSystem.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector3D.cpp" />
     <ClCompile Include="WorldObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SceneData.json" />
-    <None Include="SceneDataProcedural.json" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Appearance.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="CubeParticleSystem.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="FireParticleSystem.h" />
+    <ClInclude Include="GroundParticleSystem.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="OBJLoader.h" />
@@ -415,6 +419,7 @@
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="Quaternion.h" />
     <CLInclude Include="resource.h" />
+    <ClInclude Include="SmokeParticleSystem.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vector3D.h" />

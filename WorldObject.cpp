@@ -30,13 +30,11 @@ WorldObject::WorldObject(Transform* t, Appearance* ap, float m, bool staticTerra
         {
             particleModel->SetCollisionType(COLLISION_SPHERE);
         }
-        particleModel->SetRadius(width * transform->GetScale().y / 2);
+        particleModel->SetRadius(width * transform->GetScale().y / 2.0f);
         particleModel->SetAABBProperties(   { width * transform->GetScale().x, width * transform->GetScale().y, width * transform->GetScale().z },
                                             { -width * transform->GetScale().x / 2,
                                             -width * transform->GetScale().y / 2,
                                             -width * transform->GetScale().z / 2 });
-
-        //particleModel->SetRadius(width * transform->GetScale().x / 2.0f);
     }
 }
 
@@ -89,10 +87,6 @@ void WorldObject::UpdateRotationalOrientation(float deltaTime)
     XMMatrixDecompose(&outScale, &outQ, &outTrans, XMLoadFloat4x4(&transform->GetWorld()));
     XMFLOAT4 rot;
     XMStoreFloat4(&rot, outQ);
-
-    /*debug->DebugString("rotY:" + std::to_string(transform->GetRot().y) + "  ");
-    debug->DebugString("accY:" + std::to_string(angAccel.y) + "  ");
-    debug->DebugString("velY:" + std::to_string(angVelocity.y) + "  ");*/
 }
 
 void WorldObject::CalcAngularAccel()
@@ -121,13 +115,4 @@ void WorldObject::PlayerMove(XMFLOAT3 a, float yaw)
     XMStoreFloat3(&a, XMVector3Transform(XMLoadFloat3(&a), XMMatrixRotationRollPitchYaw(0.0f, yaw, 0.0f)));
     Vector3D tempVec = { a.x, a.y, a.z };
     particleModel->SetThrust(particleModel->GetThrust()+tempVec);
-}
-
-void WorldObject::PlayerJump(float jump)
-{
-    if (particleModel->GetGrounded())
-    {
-        Vector3D tempVec = { 0.0f, jump, 0.0f };
-        particleModel->SetThrust(particleModel->GetThrust() + tempVec);
-    }
 }
