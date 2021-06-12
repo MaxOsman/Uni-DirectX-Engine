@@ -98,7 +98,6 @@ float4 PS(PS_INPUT input) : SV_Target
     {
         textureColour = txSnow.Sample(samLinear, input.Tex);
     }    
-    //textureColour = textureColour * textureBlend * 2;
 
     // Compute the vector from the vertex to the eye position.
     // input.Pos is currently the position in world space

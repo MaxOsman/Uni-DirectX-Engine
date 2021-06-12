@@ -15,9 +15,15 @@ ParticleManager::~ParticleManager()
 	delete[] particleSystems;
 }
 
-void ParticleManager::Initialise()
+bool ParticleManager::DoesExist(std::string sysName)
 {
-	
+	for (unsigned short i = 0; i < maxSystemCount; ++i)
+	{
+		if (particleSystems[i]->systemName == sysName)
+			return true;
+	}
+
+	return false;
 }
 
 void ParticleManager::Update(float deltaTime, float yaw, float pitch)
@@ -53,6 +59,17 @@ void ParticleManager::AddSystem(ParticleSystem* newSystem)
 		{
 			particleSystems[i] = newSystem;
 			break;
+		}
+	}
+}
+
+void ParticleManager::RemoveSystem(std::string sysName)
+{
+	for (unsigned short i = 0; i < maxSystemCount; ++i)
+	{
+		if (particleSystems[i]->systemName == sysName)
+		{
+			particleSystems[i] = nullptr;
 		}
 	}
 }

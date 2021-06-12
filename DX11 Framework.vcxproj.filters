@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="SceneData.json" />
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11 Framework.rc">

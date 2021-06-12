@@ -19,6 +19,12 @@ Particle::Particle()
 	particleModel = new ParticleModel();
 }
 
+Particle::~Particle()
+{
+	particleModel = nullptr;
+	texture = nullptr;
+}
+
 void Particle::Update(float deltaTime, float yaw, float pitch)
 {
 	particleModel->GetTransform()->Update(yaw, pitch);

@@ -171,7 +171,6 @@ void Application::LoadObjectData()
     //Set up JSON
     json j;
     ifstream t("SceneData.json");
-    //ifstream t("SceneDataProcedural.json");
     t >> j;
 
     //Get stuff from JSON
@@ -200,7 +199,9 @@ void Application::LoadObjectData()
     {
         for (unsigned int j = 0; j < GRID_DEPTH; ++j)
         {
-            verts.push_back({ 1.0f * i - GRID_WIDTH / 2, heights->at(j + i * GRID_WIDTH), 1.0f * j - GRID_DEPTH / 2 });
+            verts.push_back({   1.0f * i - GRID_WIDTH / 2, 
+                                heights->at(j + i * GRID_WIDTH), 
+                                1.0f * j - GRID_DEPTH / 2 });
         }
     }
     normals.push_back({0.0f, 1.0f, 0.0f});
@@ -219,49 +220,6 @@ void Application::LoadObjectData()
             vertIndices.push_back((i + 1) * GRID_WIDTH + j);
             vertIndices.push_back(i * GRID_WIDTH + j + 1);
             vertIndices.push_back((i + 1) * GRID_WIDTH + j + 1);
-
-            /*XMFLOAT3 a = verts[i * GRID_WIDTH + j];
-            XMFLOAT3 b = verts[i * GRID_WIDTH + j + 1];
-            XMFLOAT3 c = verts[(i + 1) * GRID_WIDTH + j];
-            XMFLOAT3 d = verts[(i + 1) * GRID_WIDTH + j + 1];
-
-            //AB cross AC
-            Vector3D cross = { b.x - a.x, b.y - a.y, b.z - a.z };
-            cross.cross_product({ c.x - a.x, c.y - a.y, c.z - a.z });
-            cross = cross.normalization();
-            normals.push_back({ cross.x, cross.y, cross.z });
-            //BA cross BC
-            cross = { a.x - b.x, a.y - b.y, a.z - b.z };
-            cross.cross_product({ c.x - b.x, c.y - b.y, c.z - b.z });
-            cross = cross.normalization();
-            normals.push_back({ cross.x, cross.y, cross.z });
-            //CA cross CB
-            cross = { a.x - c.x, a.y - c.y, a.z - c.z };
-            cross.cross_product({ b.x - c.x, b.y - c.y, b.z - c.z });
-            cross = cross.normalization();
-            normals.push_back({ cross.x, cross.y, cross.z });
-            //CB cross CD
-            cross = { b.x - c.x, b.y - c.y, b.z - c.z };
-            cross.cross_product({ d.x - c.x, d.y - c.y, d.z - c.z });
-            cross = cross.normalization();
-            normals.push_back({ cross.x, cross.y, cross.z });
-            //BC cross BD
-            cross = { c.x - b.x, c.y - b.y, c.z - b.z };
-            cross.cross_product({ d.x - b.x, d.y - b.y, d.z - b.z });
-            cross = cross.normalization();
-            normals.push_back({ cross.x, cross.y, cross.z });
-            //DB cross DC
-            cross = { b.x - d.x, b.y - d.y, b.z - d.z };
-            cross.cross_product({ c.x - d.x, c.y - d.y, c.z - d.z });
-            cross = cross.normalization();
-            normals.push_back({ cross.x, cross.y, cross.z });
-
-            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j));
-            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 1);
-            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 2);
-            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 3);
-            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 4);
-            normalIndices.push_back(6 * (i * (GRID_WIDTH - 1) + j) + 5);*/
 
             normalIndices.push_back(0);
             normalIndices.push_back(0);
@@ -812,14 +770,6 @@ void Application::HandlePerFrameInput(float deltaTime)
     {
         _objects[PLAYEROBJECT].PlayerMove({ playerSpeed * deltaTime, 0.0f, 0.0f }, _camera->GetYaw());
     }
-    /*if (GetAsyncKeyState('Q'))
-    {
-        _objects[PLAYEROBJECT].GetTransform()->Translate({ 0.0f, playerSpeed * deltaTime, 0.0f });
-    }
-    if (GetAsyncKeyState('E'))
-    {
-        _objects[PLAYEROBJECT].GetTransform()->Translate({ 0.0f, -playerSpeed * deltaTime, 0.0f });
-    }*/
     if (GetAsyncKeyState(VK_ADD))
     {
         _camera->AddR(-2.0f * deltaTime);
@@ -971,7 +921,6 @@ void Application::CollisionDetection(int i, float deltaTime)
 void Application::CollisionResponseSphere(Vector3D penetration, int i, int j, float deltaTime)
 {
     // stackoverflow.com/questions/3232318/sphere-sphere-collision-detection-reaction
-    // research.ncl.ac.uk/game/mastersdegree/gametechnologies/physicstutorials/5collisionresponse/Physics%20-%20Collision%20Response.pdf
 
     float massFormulaI = _objects[i].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
     float massFormulaJ = _objects[j].GetParticle()->GetMass() / (_objects[i].GetParticle()->GetMass() + _objects[j].GetParticle()->GetMass());
@@ -981,8 +930,8 @@ void Application::CollisionResponseSphere(Vector3D penetration, int i, int j, fl
     _objects[j].GetParticle()->SetVelocity(v.j);
 
     Vector3D pene = penetration.normalization() * (_objects[i].GetParticle()->GetRadius() + _objects[j].GetParticle()->GetRadius()) - penetration;
-    _objects[i].GetTransform()->SetPos(_objects[i].GetTransform()->GetPos() - pene);
-    _objects[j].GetTransform()->SetPos(_objects[j].GetTransform()->GetPos() + pene);
+    _objects[i].GetTransform()->SetPos(_objects[i].GetTransform()->GetPos() - pene * massFormulaJ);
+    _objects[j].GetTransform()->SetPos(_objects[j].GetTransform()->GetPos() + pene * massFormulaI);
 }
 
 Vector3D Application::ProjectUOnV(Vector3D u, Vector3D v)
@@ -1000,10 +949,8 @@ Velocities3D Application::CollisionVelocities(int i, int j)
     newJ += ProjectUOnV(_objects[i].GetParticle()->GetVelocity(), _objects[j].GetTransform()->GetPos() - _objects[i].GetTransform()->GetPos());
     newJ -= ProjectUOnV(_objects[j].GetParticle()->GetVelocity(), _objects[i].GetTransform()->GetPos() - _objects[j].GetTransform()->GetPos());
 
-    return { newI / _objects[i].GetParticle()->GetMass(), newJ / _objects[j].GetParticle()->GetMass() };
-
-    /*_objects[i].GetParticle()->SetVelocity(newI / _objects[i].GetParticle()->GetMass());
-    _objects[j].GetParticle()->SetVelocity(newJ / _objects[j].GetParticle()->GetMass());*/
+    return {    newI * -1.0f * KNOCKBACK_STRENGTH / _objects[i].GetParticle()->GetMass(), 
+                newJ * KNOCKBACK_STRENGTH / _objects[j].GetParticle()->GetMass() };
 } 
 
 void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j, int sphereIndex, float multiply)
@@ -1021,52 +968,48 @@ void Application::CollisionResponseAABBSphere(Vector3D penetration, int i, int j
     {
     case FORWARD:
     case BACK:
-        //pene = (_objects[sphereIndex].GetParticle()->GetRadius() - abs(penetration.x)) * multiply;
-        //_objects[i].GetParticle()->SetVelocityX(_objects[i].GetParticle()->GetVelocity().x * -0.5f);
         _objects[i].GetParticle()->SetVelocityX(v.i.x);
         _objects[j].GetParticle()->SetVelocityX(v.j.x);
         if (dir == FORWARD)
         {
-            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - pene.x * massFormulaI);
-            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x + pene.x * massFormulaJ);
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - pene.x * massFormulaJ);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x + pene.x * massFormulaI);
         }
         else
         {
-            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x + pene.x * massFormulaI);
-            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x - pene.x * massFormulaJ);
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x + pene.x * massFormulaJ);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x - pene.x * massFormulaI);
         }
         break;
     case UP:
     case DOWN:
-        //_objects[i].GetParticle()->SetVelocityY(_objects[i].GetParticle()->GetVelocity().y * -0.5f);
         _objects[i].GetParticle()->SetVelocityY(v.i.y);
         _objects[j].GetParticle()->SetVelocityY(v.j.y);
         if (dir == UP)
         {
-            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - pene.y * massFormulaI);
-            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y + pene.y * massFormulaJ);
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - pene.y * massFormulaJ);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y + pene.y * massFormulaI);
         }
         else
         {
             _objects[i].GetParticle()->SetOnObject(true);
-            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y + pene.y * massFormulaI);
-            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y - pene.y * massFormulaJ);
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y + pene.y * massFormulaJ);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y - pene.y * massFormulaI);
         }
         break;
     case LEFT:
     case RIGHT:
-        //_objects[i].GetParticle()->SetVelocityZ(_objects[i].GetParticle()->GetVelocity().z * -0.5f);
         _objects[i].GetParticle()->SetVelocityZ(v.i.z);
         _objects[j].GetParticle()->SetVelocityZ(v.j.z);
         if (dir == LEFT)
         {
-            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - pene.z * massFormulaI);
-            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z + pene.z * massFormulaJ);
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - pene.z * massFormulaJ);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z + pene.z * massFormulaI);
         }
         else
         {
-            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z + pene.z * massFormulaI);
-            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z - pene.z * massFormulaJ);
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z + pene.z * massFormulaJ);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z - pene.z * massFormulaI);
         }
     }
 }
@@ -1088,13 +1031,13 @@ void Application::CollisionResponseAABB(Vector3D penetration, int i, int j)
         _objects[j].GetParticle()->SetVelocityX(v.j.x);
         if (dir == FORWARD)
         {
-            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - penetration.x * massFormulaI);
-            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x + penetration.x * massFormulaJ);
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x - penetration.x * massFormulaJ);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x + penetration.x * massFormulaI);
         }
         else
         {
-            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x + penetration.x * massFormulaI);
-            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x - penetration.x * massFormulaJ);
+            _objects[i].GetTransform()->SetPosX(_objects[i].GetTransform()->GetPos().x + penetration.x * massFormulaJ);
+            _objects[j].GetTransform()->SetPosX(_objects[j].GetTransform()->GetPos().x - penetration.x * massFormulaI);
         }
         break;
     case UP:
@@ -1103,13 +1046,13 @@ void Application::CollisionResponseAABB(Vector3D penetration, int i, int j)
         _objects[j].GetParticle()->SetVelocityY(v.j.y);
         if (dir == UP)
         {
-            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - penetration.y * massFormulaI);
-            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y + penetration.y * massFormulaJ);
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y - penetration.y * massFormulaJ);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y + penetration.y * massFormulaI);
         }
         else
         {
-            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y + penetration.y * massFormulaI);
-            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y - penetration.y * massFormulaJ);
+            _objects[i].GetTransform()->SetPosY(_objects[i].GetTransform()->GetPos().y + penetration.y * massFormulaJ);
+            _objects[j].GetTransform()->SetPosY(_objects[j].GetTransform()->GetPos().y - penetration.y * massFormulaI);
         }
         break;
     case LEFT:
@@ -1118,13 +1061,13 @@ void Application::CollisionResponseAABB(Vector3D penetration, int i, int j)
         _objects[j].GetParticle()->SetVelocityZ(v.j.z);
         if (dir == LEFT)
         {
-            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - penetration.z * massFormulaI);
-            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z + penetration.z * massFormulaJ);
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z - penetration.z * massFormulaJ);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z + penetration.z * massFormulaI);
         }
         else
         {
-            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z + penetration.z * massFormulaI);
-            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z - penetration.z * massFormulaJ);
+            _objects[i].GetTransform()->SetPosZ(_objects[i].GetTransform()->GetPos().z + penetration.z * massFormulaJ);
+            _objects[j].GetTransform()->SetPosZ(_objects[j].GetTransform()->GetPos().z - penetration.z * massFormulaI);
         }
     }
 }

@@ -113,7 +113,14 @@ void ParticleModel::UpdateDrag()
 
 void ParticleModel::UpdateGravity()
 {
-    reactionForce = (isGrounded || isOnObject ? Vector3D( 0.0f, G * mass, 0.0f ) : Vector3D( 0.0f, 0.0f, 0.0f ));
+    if (isGrounded || isOnObject)
+    {
+        reactionForce = Vector3D(0.0f, G * mass, 0.0f);
+    }
+    else
+    {
+        reactionForce = Vector3D(0.0f, 0.0f, 0.0f);
+    }
 }
 
 void ParticleModel::UpdateGround()
@@ -147,7 +154,6 @@ CollisionData ParticleModel::AABBCollision(Vector3D corner1, Vector3D widths1, V
 {
     // gamedev.stackexchange.com/questions/129446/how-can-i-calculate-the-penetration-depth-between-two-colliding-3d-aabbs
 
-    // Random large number
     float* mtvDistance = new float(9000000.0f);
     Vector3D* mtvAxis = new Vector3D();
 
@@ -199,7 +205,6 @@ CollisionData ParticleModel::SphereAABBCollision(Vector3D position1, float radiu
     float y = max(corner2.y, min(position1.y, corner2.y + widths2.y));
     float z = max(corner2.z, min(position1.z, corner2.z + widths2.z));
 
-    //float distance = sqrt((x - position1.x) * (x - position1.x) + (y - position1.y) * (y - position1.y) + (z - position1.z) * (z - position1.z));
     Vector3D distance = { x - position1.x , y - position1.y , z - position1.z };
     if (distance.magnitude() < radius1)
     {

@@ -100,7 +100,6 @@ public:
 	void SetOnObject(bool o) { isOnObject = o; }
 
 	void SetNetForce(Vector3D f) { netForce = f; }
-	Vector3D GetNetForce() { return netForce; }
 	void SetThrust(Vector3D f) { thrustForce = f; }
 	Vector3D GetThrust() { return thrustForce; }
 	void SetFriction(Vector3D f) { frictionForce = f; }

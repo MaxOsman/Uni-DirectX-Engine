@@ -11,15 +11,21 @@ WorldObject::WorldObject(Transform* t, Appearance* ap, float m, bool staticTerra
     {
         particleModel = new ParticleModel(transform, m);
 
-        inertiaTensor._11 = particleModel->GetMass() * (width * width * transform->GetScale().y * transform->GetScale().y) * (width * width * transform->GetScale().z * transform->GetScale().z) / 12.0f;
+        inertiaTensor._11 = particleModel->GetMass() * 
+                            (width * width * transform->GetScale().y * transform->GetScale().y) * 
+                            (width * width * transform->GetScale().z * transform->GetScale().z) / 12.0f;
         inertiaTensor._12 = 0;
         inertiaTensor._13 = 0;
         inertiaTensor._21 = 0;
-        inertiaTensor._22 = particleModel->GetMass() * (width * width * transform->GetScale().x * transform->GetScale().x) * (width * width * transform->GetScale().z * transform->GetScale().z) / 12.0f;
+        inertiaTensor._22 = particleModel->GetMass() * 
+                            (width * width * transform->GetScale().x * transform->GetScale().x) * 
+                            (width * width * transform->GetScale().z * transform->GetScale().z) / 12.0f;
         inertiaTensor._23 = 0;
         inertiaTensor._31 = 0;
         inertiaTensor._32 = 0;
-        inertiaTensor._33 = particleModel->GetMass() * (width * width * transform->GetScale().x * transform->GetScale().x) * (width * width * transform->GetScale().y * transform->GetScale().y) / 12.0f;
+        inertiaTensor._33 = particleModel->GetMass() * 
+                            (width * width * transform->GetScale().x * transform->GetScale().x) * 
+                            (width * width * transform->GetScale().y * transform->GetScale().y) / 12.0f;
 
         std::string n = appearance->GetName();
         if (n == "Cube" || n == "Pyramid")
@@ -66,7 +72,7 @@ void WorldObject::Update(float deltaTime, float yaw, float pitch)
 
 void WorldObject::UpdateRotationalSpeed(float deltaTime)
 {
-   angVelocity = angVelocity * pow(angDamping, deltaTime) + angAccel * deltaTime;
+    angVelocity = angVelocity * pow(angDamping, deltaTime) + angAccel * deltaTime;
 }
 
 void WorldObject::UpdateRotationalOrientation(float deltaTime)

@@ -15,14 +15,11 @@ public:
 	int particleSystemCount = 0;
 	int maxSystemCount;
 
-	void Initialise();
 	void AddSystem(ParticleSystem* newSystem);
+	void RemoveSystem(std::string sysName);
+	void RemoveSystem(int index) { particleSystems[index] = nullptr; };
 
-	void RemoveSystem(std::string systemName);
-	void RemoveSystem(int index);
-
-	void Shutdown();
-	bool DoesExist(std::string systemName);
+	bool DoesExist(std::string sysName);
 
 	void Update(float deltaTime, float yaw, float pitch);
 	void Render(ID3D11DeviceContext* pImmediateContext, ConstantBuffer* cb, ID3D11Buffer* pConstantBuffer);
